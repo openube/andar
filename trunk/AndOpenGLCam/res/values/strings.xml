@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, MainActivity!</string>
+    
     <string name="app_name">AndOpenGLCam</string>
+<string name="error_unkown_pixel_format">the camera uses an unkown pixel format.</string>
 </resources>
