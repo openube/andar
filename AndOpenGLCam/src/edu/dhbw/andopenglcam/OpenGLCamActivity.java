@@ -53,8 +53,8 @@ public class OpenGLCamActivity extends Activity implements Callback{
         //no title:
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        setOrientation();
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        
         setFullscreen();
         disableScreenTurnOff();
 
