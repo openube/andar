@@ -19,8 +19,6 @@
  */
 package edu.dhbw.andopenglcam;
 
-import java.io.IOException;
-
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
@@ -28,10 +26,7 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.opengl.GLSurfaceView;
-import android.opengl.GLSurfaceView.Renderer;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.Window;
 import android.view.WindowManager;
@@ -50,33 +45,18 @@ public class OpenGLCamActivity extends Activity implements Callback{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //no title:
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        
         setFullscreen();
         disableScreenTurnOff();
+        //orientation is set via the manifest
 
-        
         res = getResources();     
-        //get the pixel format of the camera
-        //the default is YCbCr_420_SP (NV21), see:
-        //camera = Camera.open();
-        //Parameters params = camera.getParameters();
-        //int pixelFormat = params.getPreviewFormat();
         glSurfaceView = new OpenGLCamView(this);
-        try {
-			renderer = new OpenGLCamRenderer(PixelFormat.YCbCr_420_SP, res);
-			cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer);
-	        glSurfaceView.setRenderer(renderer);
-	        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-	        glSurfaceView.getHolder().addCallback(this);
-	        setContentView(glSurfaceView); 	        
-		} catch (Exception e) {
-			e.printStackTrace();
-			finish();
-		}
+		renderer = new OpenGLCamRenderer(res);
+		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res);
+        glSurfaceView.setRenderer(renderer);
+        glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        glSurfaceView.getHolder().addCallback(this);
+        setContentView(glSurfaceView); 	 
     }
     
     public void disableScreenTurnOff() {
@@ -112,8 +92,6 @@ public class OpenGLCamActivity extends Activity implements Callback{
     	mPausing = false;
     	glSurfaceView.onResume();
         super.onResume();
-        //if(!mPreviewing)
-        //	startPreview();  
     }
     
     /* (non-Javadoc)
@@ -122,12 +100,6 @@ public class OpenGLCamActivity extends Activity implements Callback{
     @Override
     protected void onStop() {
     	super.onStop();
-    	/*if (camera != null) {
-	        //release camera
-	        camera.stopPreview();
-	        camera.release();
-	        camera = null;
-        }*/
     }
     
     private void openCamera()  {
@@ -136,9 +108,14 @@ public class OpenGLCamActivity extends Activity implements Callback{
     		camera = CameraHolder.instance().open();
 	        Parameters params = camera.getParameters();
 	        //TODO don't make assumptions about preview size
-	        params.setPreviewSize(240,160);
+	        //params.setPreviewSize(240,160);
 	        camera.setParameters(params);
-	        camera.setPreviewCallback(cameraHandler);	        
+	        camera.setPreviewCallback(cameraHandler);
+	        try {
+				cameraHandler.init(camera);
+			} catch (Exception e) {
+				//TODO: notify the user
+			}
     	}
     }
     
@@ -166,7 +143,7 @@ public class OpenGLCamActivity extends Activity implements Callback{
         mPreviewing = false;
     }
 
-	/* (non-Javadoc)
+	/* The GLSurfaceView changed
 	 * @see android.view.SurfaceHolder.Callback#surfaceChanged(android.view.SurfaceHolder, int, int, int)
 	 */
 	@Override
@@ -174,21 +151,18 @@ public class OpenGLCamActivity extends Activity implements Callback{
 			int height) {
 	}
 
-	/* (non-Javadoc)
+	/* The GLSurfaceView was created
+	 * The camera will be opened and the preview started 
 	 * @see android.view.SurfaceHolder.Callback#surfaceCreated(android.view.SurfaceHolder)
 	 */
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		if(!mPreviewing)
 			startPreview();  
-		/*try {
-			camera.setPreviewDisplay(holder);
-		} catch (IOException e) {
-			closeCamera();
-		}*/
 	}
 
-	/* (non-Javadoc)
+	/* GLSurfaceView was destroyed
+	 * The camera will be closed and the preview stopped.
 	 * @see android.view.SurfaceHolder.Callback#surfaceDestroyed(android.view.SurfaceHolder)
 	 */
 	@Override

@@ -19,15 +19,11 @@
  */
 package edu.dhbw.andopenglcam;
 
-import java.io.IOException;
-import java.io.InputStream;
+
 import java.io.Writer;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -38,16 +34,9 @@ import edu.dhbw.andopenglcam.interfaces.PreviewFrameSink;
 
 
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.hardware.Camera;
-import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.opengl.GLDebugHelper;
-import android.opengl.GLU;
-import android.opengl.GLUtils;
 import android.opengl.GLSurfaceView.Renderer;
 import android.util.Log;
 
@@ -58,21 +47,18 @@ import android.util.Log;
  */
 public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private Resources res;
+	private boolean DEBUG = true;
 	private int textureName;
 	private float[] square;
 	private float[] testSquare;
-	float textureCoords[] = new float[] {
+	float[] textureCoords = new float[] {
 			// Camera preview
 			 0.0f, 0.625f,
 			 0.9375f, 0.625f,
 			 0.0f, 0.0f,
 			 0.9375f, 0.0f			 
 		};
-		
-		/*new float[] {0.0f, 0.0f,
-										 1.0f, 0.0f,
-										 0.0f, 1.0f,
-										 1.0f, 1.0f};*/
+	
 	private FloatBuffer textureBuffer;
 	private FloatBuffer squareBuffer;
 	private FloatBuffer testSquareBuffer;
@@ -82,17 +68,18 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private ReentrantLock frameLock = new ReentrantLock();
 	private boolean isTextureInitialized = false;
 	private Writer log = new LogWriter();
+	private int textureSize = 256;
 	
 	/**
 	 * the default constructer
 	 * @param int the {@link PixelFormat} of the Camera preview
 	 * @param res Resources
 	 */
-	public OpenGLCamRenderer(int pixelFormat, Resources res) throws Exception {		
-		if ((pixelFormat != PixelFormat.YCbCr_420_SP) && false) {//TODO abfangen
+	public OpenGLCamRenderer(Resources res)  {		//throws Exception
+		/*if ((pixelFormat != PixelFormat.YCbCr_420_SP) && false) {//TODO abfangen
 			//unkown Pixel format
 			throw new Exception(res.getString(R.string.error_unkown_pixel_format));
-		}
+		}*/
 		this.res = res;
 		
 	}
@@ -103,7 +90,8 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	@Override
 	public void onDrawFrame(GL10 gl) {
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-		gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
+		if(DEBUG)
+			gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
 		
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureName);
 		//load new preview frame as a texture, if needed
@@ -111,12 +99,13 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 			frameLock.lock();
 			isTextureInitialized = false;
 			if(!isTextureInitialized) {
-				gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_LUMINANCE, 256, 256,
+				gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_LUMINANCE, textureSize, textureSize,
 						0, GL10.GL_LUMINANCE, GL10.GL_UNSIGNED_BYTE, frameData);
 				isTextureInitialized = true;
 			} else {
 				//just update the image
-				gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL10.GL_LUMINANCE,
+				//TODO: can we just update a portion(non power of two)?
+				gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize, GL10.GL_LUMINANCE,
 						GL10.GL_UNSIGNED_BYTE, frameData);
 			}
 			frameLock.unlock();
@@ -236,6 +225,25 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	@Override
 	public ReentrantLock getFrameLock() {
 		return frameLock;
+	}
+
+	/* Set the size of the texture(must be power of two)
+	 * @see edu.dhbw.andopenglcam.interfaces.PreviewFrameSink#setTextureSize()
+	 */
+	@Override
+	public void setPreviewFrameSize(int textureSize, int realWidth, int realHeight) {
+		//test if it is a power of two number
+		if (!GenericFunctions.isPowerOfTwo(textureSize))
+			return;
+		this.textureSize = textureSize;
+		//calculate texture coords
+		this.textureCoords = new float[] {
+				// Camera preview
+				 0.0f, ((float)realHeight)/textureSize,
+				 ((float)realWidth)/textureSize, ((float)realHeight)/textureSize,
+				 0.0f, 0.0f,
+				 ((float)realWidth)/textureSize, 0.0f			 
+			};
 	}
 	
 }
