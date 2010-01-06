@@ -29,4 +29,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public interface PreviewFrameSink {
 	abstract void setNextFrame(ByteBuffer buf);
 	abstract ReentrantLock getFrameLock();
+	/**
+	 * Set the size of the texture(must be power of two)
+	 */
+	abstract void setPreviewFrameSize(int textureSize, int realWidth, int realHeight);
 }
