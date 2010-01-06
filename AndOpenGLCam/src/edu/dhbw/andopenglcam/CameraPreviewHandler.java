@@ -74,6 +74,7 @@ public class CameraPreviewHandler implements PreviewCallback {
    			yuvsCounter=yuvsCounter+240;
    			bwCounter=bwCounter+256;
    		}
+   		
 		frameSink.setNextFrame(ByteBuffer.wrap(frame));
 		this.glSurfaceView.requestRender();
 		frameSink.getFrameLock().unlock();

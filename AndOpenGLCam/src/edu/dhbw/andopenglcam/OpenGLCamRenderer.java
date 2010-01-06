@@ -60,6 +60,7 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private Resources res;
 	private int textureName;
 	private float[] square;
+	private float[] testSquare;
 	float textureCoords[] = new float[] {
 			// Camera preview
 			 0.0f, 0.625f,
@@ -74,6 +75,7 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 										 1.0f, 1.0f};*/
 	private FloatBuffer textureBuffer;
 	private FloatBuffer squareBuffer;
+	private FloatBuffer testSquareBuffer;
 	private Size previewSize;
 	private boolean frameEnqueued = false;
 	private ByteBuffer frameData = null;
@@ -100,13 +102,14 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	 */
 	@Override
 	public void onDrawFrame(GL10 gl) {
+		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
 		
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureName);
 		//load new preview frame as a texture, if needed
 		if (frameEnqueued) {
 			frameLock.lock();
-			//isTextureInitialized = false;
+			isTextureInitialized = false;
 			if(!isTextureInitialized) {
 				gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_LUMINANCE, 256, 256,
 						0, GL10.GL_LUMINANCE, GL10.GL_UNSIGNED_BYTE, frameData);
@@ -125,9 +128,25 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 			//gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
 			frameEnqueued = false;
 		}
-		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-		gl.glColor4f(1, 1, 1, 0.5f);		
+		
+		gl.glColor4f(1, 1, 1, 0.5f);	
+		
+		//bind texture pointers:
+		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);
+		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, squareBuffer);
+		
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
+		
+		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+		gl.glColor4f(0, 0, 1, 0.5f);
+		
+		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, testSquareBuffer);
+		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
+		
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 	}
 	
 
@@ -160,10 +179,13 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 				-100f*aspectRatio, 100.0f, -1f,
 				 100f*aspectRatio, 100.0f, -1f };
 		
+		testSquare = new float[] { 	-100f*aspectRatio*0.5f, -100.0f*0.5f, 0f,
+				 100f*aspectRatio*0.5f, -100.0f*0.5f, 0f,
+				-100f*aspectRatio*0.5f, 100.0f*0.5f, 0f,
+				 100f*aspectRatio*0.5f, 100.0f*0.5f, 0f };
+		
 		squareBuffer = makeFloatBuffer(square);		
-		//bind vertex pointers
-		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, squareBuffer);
+		testSquareBuffer = makeFloatBuffer(testSquare);
 	}
 
 	/* (non-Javadoc)
@@ -181,11 +203,6 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		textureName = textureNames[0];
 		
 		textureBuffer = makeFloatBuffer(textureCoords);
-		
-		//bind texture pointers:
-		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);
-		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-		
 	}
 	
 	/**
