@@ -107,10 +107,10 @@ public class OpenGLCamActivity extends Activity implements Callback{
 	    	//camera = Camera.open();
     		camera = CameraHolder.instance().open();
 	        Parameters params = camera.getParameters();
-	        //TODO don't make assumptions about preview size
-	        //params.setPreviewSize(240,160);
+	        params.setPreviewSize(240,160);
 	        camera.setParameters(params);
 	        camera.setPreviewCallback(cameraHandler);
+	        //camera.setOneShotPreviewCallback(cameraHandler);
 	        try {
 				cameraHandler.init(camera);
 			} catch (Exception e) {

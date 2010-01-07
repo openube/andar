@@ -37,6 +37,7 @@ import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.hardware.Camera.Size;
 import android.opengl.GLDebugHelper;
+import android.opengl.GLUtils;
 import android.opengl.GLSurfaceView.Renderer;
 import android.util.Log;
 
@@ -47,7 +48,7 @@ import android.util.Log;
  */
 public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private Resources res;
-	private boolean DEBUG = true;
+	private boolean DEBUG = false;
 	private int textureName;
 	private float[] square;
 	private float[] testSquare;
@@ -62,7 +63,6 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private FloatBuffer textureBuffer;
 	private FloatBuffer squareBuffer;
 	private FloatBuffer testSquareBuffer;
-	private Size previewSize;
 	private boolean frameEnqueued = false;
 	private ByteBuffer frameData = null;
 	private ReentrantLock frameLock = new ReentrantLock();
@@ -75,11 +75,7 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	 * @param int the {@link PixelFormat} of the Camera preview
 	 * @param res Resources
 	 */
-	public OpenGLCamRenderer(Resources res)  {		//throws Exception
-		/*if ((pixelFormat != PixelFormat.YCbCr_420_SP) && false) {//TODO abfangen
-			//unkown Pixel format
-			throw new Exception(res.getString(R.string.error_unkown_pixel_format));
-		}*/
+	public OpenGLCamRenderer(Resources res)  {
 		this.res = res;
 		
 	}
@@ -99,14 +95,14 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 			frameLock.lock();
 			isTextureInitialized = false;
 			if(!isTextureInitialized) {
-				gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_LUMINANCE, textureSize, textureSize,
-						0, GL10.GL_LUMINANCE, GL10.GL_UNSIGNED_BYTE, frameData);
+				gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGB, textureSize,
+						textureSize, 0, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE , frameData);
 				isTextureInitialized = true;
 			} else {
 				//just update the image
 				//TODO: can we just update a portion(non power of two)?
-				gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize, GL10.GL_LUMINANCE,
-						GL10.GL_UNSIGNED_BYTE, frameData);
+				gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize,
+						GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, frameData);
 			}
 			frameLock.unlock();
 			
@@ -119,23 +115,24 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		}
 		
 		gl.glColor4f(1, 1, 1, 0.5f);	
-		
-		//bind texture pointers:
+		//draw camera preview frame:
 		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		
+		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);		
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, squareBuffer);
 		
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
 		
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-		gl.glColor4f(0, 0, 1, 0.5f);
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 		
+		//draw blue square
+		/*gl.glColor4f(0, 0, 1, 0.5f);		
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, testSquareBuffer);
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
-		
-		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);*/
 	}
 	
 
@@ -243,7 +240,7 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 				 ((float)realWidth)/textureSize, ((float)realHeight)/textureSize,
 				 0.0f, 0.0f,
 				 ((float)realWidth)/textureSize, 0.0f			 
-			};
+			};		
 	}
 	
 }
