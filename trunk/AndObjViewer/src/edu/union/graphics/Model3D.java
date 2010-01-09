@@ -147,7 +147,7 @@ public class Model3D {
 	 * @param xpos the xpos to set
 	 */
 	public void setXpos(float xpos) {
-		this.xpos = xpos;
+		this.xpos += xpos;
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class Model3D {
 	 * @param ypos the ypos to set
 	 */
 	public void setYpos(float ypos) {
-		this.ypos = ypos;
+		this.ypos += ypos;
 	}
 
 	/**
