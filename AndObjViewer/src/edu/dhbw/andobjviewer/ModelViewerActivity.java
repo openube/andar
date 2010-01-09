@@ -36,6 +36,8 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -57,6 +59,12 @@ public class ModelViewerActivity extends Activity {
 	private GLSurfaceView modelView;
 	private ModelRenderer renderer;
 	private Model3D model3D;
+	/* Menu Options: */
+	private final int MENU_SCALE = 0;
+	private final int MENU_ROTATE = 1;
+	private final int MENU_TRANSLATE = 2;
+	
+	private int mode = MENU_TRANSLATE;
 
 	
 	private ArrayList<AbstractModelLoader> availableModelLoaders = new ArrayList<AbstractModelLoader>();
@@ -142,6 +150,34 @@ public class ModelViewerActivity extends Activity {
     	return null;
     }
     
+    /* create the menu
+     * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, MENU_ROTATE, 0, "rotate");
+        menu.add(0, MENU_SCALE, 0, "scale");
+        menu.add(0, MENU_TRANSLATE, 0, "translate");
+        return true;
+    }
+    
+
+    /* Handles item selections */
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+	        case MENU_SCALE:
+	            mode = MENU_SCALE;
+	            return true;
+	        case MENU_ROTATE:
+	        	mode = MENU_ROTATE;
+	            return true;
+	        case MENU_TRANSLATE:
+	        	mode = MENU_TRANSLATE;
+	            return true;
+        }
+        return false;
+    }
+    
     /**
      * Handles touch events.
      * @author Tobias Domhan
@@ -170,8 +206,19 @@ public class ModelViewerActivity extends Activity {
 					float dY = lastY - event.getY();
 					lastX = event.getX();
 					lastY = event.getY();
-					model3D.setXrot(dY);//dY-> Rotation um die X-Achse
-					model3D.setYrot(dX);//dX-> Rotation um die Y-Achse
+					switch(mode) {
+						case MENU_SCALE:
+							model3D.setScale(dY/100f);
+				            break;
+				        case MENU_ROTATE:
+				        	model3D.setXrot(dY);//dY-> Rotation um die X-Achse
+							model3D.setYrot(dX);//dX-> Rotation um die Y-Achse
+				            break;
+				        case MENU_TRANSLATE:
+				        	model3D.setXpos(dX/-100f);
+							model3D.setYpos(dY/100f);
+				        	break;
+					}					
 					break;
 				//Action ended
 				case MotionEvent.ACTION_CANCEL:	
