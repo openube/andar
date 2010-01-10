@@ -17,13 +17,17 @@
     along with AndObjViewer.  If not, see <http://www.gnu.org/licenses/>.
  
  */
-package edu.union.graphics;
+package edu.dhbw.andobjviewer.graphics;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
+
+import edu.dhbw.andobjviewer.ModelRenderer;
+import edu.union.graphics.Mesh;
+import edu.union.graphics.Model;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -61,38 +65,36 @@ public class Model3D {
 	
 	public void init(GL10 gl) {
         Mesh ms = model.getFrame(0).getMesh();
-        int verts = ms.getFaceCount()*3;
+        int vertCount = ms.getFaceCount()*3;
+        
+        float[] verticesArr = new float[vertCount*3];
+        float[] normalsArr = new float[vertCount*3];
 
-        ByteBuffer bb = ByteBuffer.allocateDirect(verts*3*4);//4 byte per float
-        bb.order(ByteOrder.nativeOrder());
-        vertices = bb.asFloatBuffer();
-
+        int vertexPtr = 0;
+        int normalsPtr = 0;
         for (int f=0;f<ms.getFaceCount();f++) {
                 int[] face = ms.getFace(f);
                 //TODO: faces may have more than 3 vertices.
                 for (int j=0;j<3;j++) {
                         float[] v = ms.getVertexf(face[j]);
                         for (int k=0;k<3;k++) {
-                                vertices.put(v[k]);
+                            //vertices.put(v[k]);
+                        	verticesArr[vertexPtr] = v[k];
+                        	vertexPtr++;
                         }
                 }
+                int[] face_n = ms.getFaceNormals(f);
+                for (int j=0;j<3;j++) {
+                        float[] n = ms.getNormalf(face_n[j]);
+                        for (int k=0;k<3;k++) {
+                                normalsArr[normalsPtr] = n[k];
+                                normalsPtr++;
+                        }
+                }
+
         }
-        vertices.position(0);
-        /*if (ms.getTextureFile() != null) {
-                gl.glEnable(GL10.GL_TEXTURE_2D);
-                textureName = loadTexture(gl, BitmapFactory.decodeResource(c.getResources(),R.drawable.skin));
-        }*/
-        
-        //bb = ByteBuffer.allocateDirect(msh.getVertexCount()*3*4);
-        /*bb = ByteBuffer.allocateDirect(verts*3*4);
-        bb.order(ByteOrder.nativeOrder());
-        normals = bb.asFloatBuffer();
-
-        
-        bb = ByteBuffer.allocateDirect(verts*2*4);
-        bb.order(ByteOrder.nativeOrder());
-        texCoords = bb.asFloatBuffer();*/
-
+        vertices = ModelRenderer.makeFloatBuffer(verticesArr);
+        normals = ModelRenderer.makeFloatBuffer(normalsArr);
 	}
 	
 	/**
@@ -119,9 +121,11 @@ public class Model3D {
         /*GLU.gluLookAt(gl, 0, 0, 5, 0, 0, 0, 0, 1, 0);
         gl.glTranslatef(0,0,-10);
         gl.glRotatef(30.0f, 1, 0, 0);*/
-        gl.glColor4f(0f, 1f, 0f, 1f);
-        gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-        //gl.glEnableClientState(GL10.GL_NORMAL_ARRAY);
+		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+		//gl.glEnableClientState(GL10.GL_NORMAL_ARRAY);
+
+        gl.glColor4f(0f, 1f, 0f, 1f);        
+        gl.glEnableClientState(GL10.GL_NORMAL_ARRAY);
         /*gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
         gl.glBindTexture(GL10.GL_TEXTURE_2D, textureName);*/
         gl.glScalef(scale, scale, scale);
@@ -130,8 +134,14 @@ public class Model3D {
         gl.glRotatef(yrot, 0, 1, 0);
         gl.glRotatef(zrot, 0, 0, 1);
         gl.glVertexPointer(3,GL10.GL_FLOAT, 0, vertices);
+        gl.glNormalPointer(GL10.GL_FLOAT,0, normals);
+
         int faces = model.getFrame(0).getMesh().getFaceCount();
         gl.glDrawArrays(GL10.GL_TRIANGLES, 0, faces*3);
+        
+        gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+        gl.glDisableClientState(GL10.GL_NORMAL_ARRAY);
+
 	}
 	
 	//getters and setters:
