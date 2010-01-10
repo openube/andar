@@ -55,6 +55,7 @@ public class MainActivity extends Activity {
 	 */
 	private final int PICK_FILE = 1;
 	private final int VIEW_MODEL = 2;
+	public static final int RESULT_ERROR = 3;
 	
 	/*
 	 * Dialogs:
@@ -125,7 +126,7 @@ public class MainActivity extends Activity {
 			    	default:
 			    	case Activity.RESULT_CANCELED:
 			    		//let the user select a file...again
-			    		selectFile();
+			    		//selectFile();
 			    		break;
 		    	}
 		    	break;
@@ -136,9 +137,16 @@ public class MainActivity extends Activity {
 			    		selectFile();
 			    		break;
 			    	case Activity.RESULT_CANCELED:
+			    		selectFile();
+			    		break;
+			    	case RESULT_ERROR:
 			    		//something went wrong ... notify the user
-			    		Bundle extras = data.getExtras();
-			    		Toast.makeText(this, extras.getString("error_message"), TOAST_TIMEOUT).show();
+			    		if(data != null) {
+				    		Bundle extras = data.getExtras();
+				    		String errorMessage = extras.getString("error_message");
+				    		if(errorMessage != null)
+				    			Toast.makeText(this, extras.getString("error_message"), TOAST_TIMEOUT).show();
+			    		}
 			    		selectFile();
 			    		break;	
 	    		}

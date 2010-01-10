@@ -10,7 +10,11 @@ import java.util.StringTokenizer;
 
 /**
  * A loader for Wavefront OBJ files.
+ * obj specifications:
+ * http://local.wasp.uwa.edu.au/~pbourke/dataformats/obj/
+ * TODO parse materials
  * @author bburns
+ * modified by Tobias Domhan
  */
 public class ObjLoader extends AbstractModelLoader {
 	public static enum hand { LEFT, RIGHT};
@@ -79,6 +83,7 @@ public class ObjLoader extends AbstractModelLoader {
 			{
 				if (line.length() > 0) {
 					if (line.startsWith("v ")) {
+						//TODO v might have a weight as a additional parameter
 						float[] vertex = new float[3];
 						StringTokenizer tok = new StringTokenizer(line);
 						tok.nextToken();

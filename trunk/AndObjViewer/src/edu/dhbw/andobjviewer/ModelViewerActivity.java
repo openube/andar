@@ -24,18 +24,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 
+import edu.dhbw.andobjviewer.graphics.Model3D;
 import edu.union.graphics.AbstractModelLoader;
 import edu.union.graphics.FloatMesh;
 import edu.union.graphics.IntMesh;
 import edu.union.graphics.MD2Loader;
 import edu.union.graphics.Model;
-import edu.union.graphics.Model3D;
 import edu.union.graphics.ObjLoader;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -98,7 +99,7 @@ public class ModelViewerActivity extends Activity {
 			//no loader available
 			Intent resIntent = new Intent();
 			resIntent.putExtra("error_message", res.getText(R.string.unknown_file_type));
-			setResult(Activity.RESULT_CANCELED, resIntent);
+			setResult(MainActivity.RESULT_ERROR, resIntent);
 			//return
 			finish();
 		}
@@ -111,8 +112,12 @@ public class ModelViewerActivity extends Activity {
 			modelView.setOnTouchListener(new EventHandler());
 		} catch (IOException e) {
 			e.printStackTrace();
-			//TODO return intent and finish acticity
-			Toast.makeText(this, e.getMessage(), TOAST_TIMEOUT).show();
+			//Toast.makeText(this, e.getMessage(), TOAST_TIMEOUT).show();
+			Intent resIntent = new Intent();
+			resIntent.putExtra("error_message", res.getText(R.string.unknown_file_type));
+			setResult(Activity.RESULT_CANCELED, resIntent);
+			//return
+			finish();
 		}
 		setContentView(modelView);		
 	}
@@ -150,14 +155,19 @@ public class ModelViewerActivity extends Activity {
     	return null;
     }
     
+    
+    
     /* create the menu
      * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, MENU_ROTATE, 0, "rotate");
-        menu.add(0, MENU_SCALE, 0, "scale");
-        menu.add(0, MENU_TRANSLATE, 0, "translate");
+    	menu.add(0, MENU_TRANSLATE, 0, res.getText(R.string.translate))
+    		.setIcon(R.drawable.translate);
+        menu.add(0, MENU_ROTATE, 0, res.getText(R.string.rotate))
+        	.setIcon(R.drawable.rotate);
+        menu.add(0, MENU_SCALE, 0, res.getText(R.string.scale))
+        	.setIcon(R.drawable.scale);        
         return true;
     }
     
@@ -188,7 +198,9 @@ public class ModelViewerActivity extends Activity {
     	private float lastX=0;
     	private float lastY=0;
 
-		/* (non-Javadoc)
+		/* handles the touch events.
+		 * the object will either be scaled, translated or rotated, dependen on the
+		 * current user selected mode.
 		 * @see android.view.View.OnTouchListener#onTouch(android.view.View, android.view.MotionEvent)
 		 */
 		@Override
