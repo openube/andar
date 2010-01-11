@@ -1,5 +1,6 @@
 package edu.union.graphics;
 
+import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -9,7 +10,7 @@ import java.util.Vector;
  *    - per face normals (accessible through getFaceNormal)
  *    - per vertex normals (accessible through getFaceNormals and getNormal)
  **/
-public abstract class Mesh {
+public abstract class Mesh implements Serializable {
 	Mesh indexDelegate = null;
 	protected boolean sharedVertexNormals;
 	protected boolean sharedTextureCoords;

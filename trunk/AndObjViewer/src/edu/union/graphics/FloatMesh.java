@@ -1,5 +1,6 @@
 package edu.union.graphics;
 
+import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
@@ -8,7 +9,7 @@ import java.util.Vector;
  * A Mesh which stores things in Vectors of floating-point values
  * @author bburns
  */
-public class FloatMesh extends Mesh {
+public class FloatMesh extends Mesh implements Serializable {
 	Vector<float[]> vertices;
 	Vector<float[]> face_normals;
 	Vector<float[]> vertex_normals;

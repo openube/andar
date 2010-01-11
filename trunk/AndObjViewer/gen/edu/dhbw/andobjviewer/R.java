@@ -12,6 +12,9 @@ public final class R {
     }
     public static final class drawable {
         public static final int icon=0x7f020000;
+        public static final int rotate=0x7f020001;
+        public static final int scale=0x7f020002;
+        public static final int translate=0x7f020003;
     }
     public static final class id {
         public static final int InfoText=0x7f050000;
@@ -24,7 +27,10 @@ public final class R {
         public static final int app_name=0x7f040000;
         public static final int file_doesnt_exist=0x7f040004;
         public static final int pickfile_intent_required=0x7f040003;
+        public static final int rotate=0x7f040006;
+        public static final int scale=0x7f040008;
         public static final int select_model_file=0x7f040001;
+        public static final int translate=0x7f040007;
         public static final int unknown_file_type=0x7f040005;
     }
 }

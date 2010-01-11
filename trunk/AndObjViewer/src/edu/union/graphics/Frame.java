@@ -1,10 +1,12 @@
 package edu.union.graphics;
 
+import java.io.Serializable;
+
 /**
  * A single frame in an animation.
  * @author bburns
  */
-public class Frame {
+public class Frame implements Serializable {
 	String name;
 	Mesh mesh;
 

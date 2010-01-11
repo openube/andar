@@ -19,6 +19,7 @@
  */
 package edu.dhbw.andobjviewer.graphics;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -40,7 +41,7 @@ import android.util.Log;
  * @author Tobias Domhan
  *
  */
-public class Model3D {
+public class Model3D implements Serializable {
 	private Model model;
 	private FloatBuffer vertices;
     private FloatBuffer normals;

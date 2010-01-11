@@ -51,8 +51,10 @@ public class ModelRenderer implements Renderer {
 	 */
 	private float[] ambientlight = {.3f, .3f, .3f, 1f};
 	private float[] diffuselight = {.7f, .7f, .7f, 1f};
-	private float[] specularlight = {1f, 1f, 1f, 1f};
-	private float[] specref = {1f, 1f, 1f, 1f};
+	private float[] specularlight = {0.6f, 0.6f, 0.6f, 1f};
+	private float[] specref = {0.99f,	0.94f,	0.81f,	1.0f};
+	private float[] difcref = {0.78f,	0.57f,	0.11f,	1.0f};
+	private float[] ambref = {	0.33f,	0.22f,	0.03f,	1.0f};
 	
 	/**
 	 * 
@@ -83,7 +85,11 @@ public class ModelRenderer implements Renderer {
         //gl.glTranslatef(0, -3, 0);
 
 		
-		gl.glColor4f(0f, 1f, 0f, 1f);		
+		//gl.glColor4f(0f, 1f, 0f, 1f);
+		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, makeFloatBuffer(specref));
+		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, makeFloatBuffer(ambref));
+		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_DIFFUSE, makeFloatBuffer(difcref));
+		gl.glMaterialf(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, 27.9f);
 		model.draw(gl);
 	}
 
@@ -124,12 +130,9 @@ public class ModelRenderer implements Renderer {
 		gl.glEnable(gl.GL_LIGHT0);
 		
 		//enable color tracking
-		gl.glEnable(gl.GL_COLOR_MATERIAL);
-		
-		gl.glMaterialfv(GL10.GL_FRONT, GL10.GL_SPECULAR, makeFloatBuffer(specref));
-		gl.glMaterialf(GL10.GL_FRONT, GL10.GL_SHININESS, 128.0f);
-		
-		
+		//gl.glEnable(gl.GL_COLOR_MATERIAL);
+		//disable color tracking:
+		gl.glDisable(GL10.GL_COLOR_MATERIAL);
 		//load the model
 		model.init(gl);
 	}
