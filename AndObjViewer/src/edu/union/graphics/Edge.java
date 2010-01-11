@@ -1,10 +1,12 @@
 package edu.union.graphics;
 
+import java.io.Serializable;
+
 /**
  * A class representing an edge between two vertices.
  * @author bburns
  */
-public class Edge {
+public class Edge implements Serializable {
 	int start, end;
 	int hs;
 

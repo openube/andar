@@ -1,12 +1,13 @@
 package edu.union.graphics;
 
+import java.io.Serializable;
 import java.util.Vector;
 
 /**
  * A Model is a collection of one or more animation frames.
  * @author bburns
  */
-public class Model {
+public class Model implements Serializable{
 	Vector<Frame> frames;
 	Vector<Animation> animations;
 

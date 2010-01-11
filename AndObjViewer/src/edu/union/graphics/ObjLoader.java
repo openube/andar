@@ -11,10 +11,12 @@ import java.util.StringTokenizer;
 /**
  * A loader for Wavefront OBJ files.
  * obj specifications:
- * http://local.wasp.uwa.edu.au/~pbourke/dataformats/obj/
+ * http://local.wasp.uwa.edu.au/~pbourke/dataformats/obj/,
+ * http://www.martinreddy.net/gfx/3d/OBJ.spec
+ * http://www.royriggs.com/obj.html
  * TODO parse materials
  * @author bburns
- * modified by Tobias Domhan
+ * @author Tobias Domhan
  */
 public class ObjLoader extends AbstractModelLoader {
 	public static enum hand { LEFT, RIGHT};

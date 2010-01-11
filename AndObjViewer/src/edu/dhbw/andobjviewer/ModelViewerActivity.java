@@ -60,6 +60,7 @@ public class ModelViewerActivity extends Activity {
 	private GLSurfaceView modelView;
 	private ModelRenderer renderer;
 	private Model3D model3D;
+	private Model model;
 	/* Menu Options: */
 	private final int MENU_SCALE = 0;
 	private final int MENU_ROTATE = 1;
@@ -76,7 +77,10 @@ public class ModelViewerActivity extends Activity {
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);		
+		if(savedInstanceState != null) {
+    		model = (Model) savedInstanceState.getSerializable("model");
+    	}
 		this.res = this.getResources();
 		Intent intent = getIntent();
 		File modelFile =  new File(URI.create(intent.getDataString()));
@@ -105,7 +109,10 @@ public class ModelViewerActivity extends Activity {
 		}
 		//load and view model 
 		try {
-			Model model = loader.load(modelFile);
+			//load Model if it wasn't restored from another session
+			if(model == null) {
+				model = loader.load(modelFile);
+			}
 			model3D = new Model3D(model);
 			renderer = new ModelRenderer(model3D);
 			modelView.setRenderer(renderer);
@@ -186,6 +193,25 @@ public class ModelViewerActivity extends Activity {
 	            return true;
         }
         return false;
+    }
+    
+    /* saving avtivity state:
+     * http://developer.android.com/guide/topics/fundamentals.html#actstate
+     * @see android.app.Activity#onSaveInstanceState(android.os.Bundle)
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+    	super.onSaveInstanceState(outState);
+    	//save the model
+    	outState.putSerializable("model", model);
+    }
+    
+    /* (non-Javadoc)
+     * @see android.app.Activity#onRestoreInstanceState(android.os.Bundle)
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    	super.onRestoreInstanceState(savedInstanceState);    	
     }
     
     /**

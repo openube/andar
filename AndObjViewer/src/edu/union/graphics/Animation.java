@@ -1,8 +1,9 @@
 package edu.union.graphics;
 
+import java.io.Serializable;
 import java.util.Vector;
 
-public class Animation {
+public class Animation implements Serializable {
 	Model model;
 	int frameStart;
 	int frameEnd;
