@@ -69,6 +69,8 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private boolean isTextureInitialized = false;
 	private Writer log = new LogWriter();
 	private int textureSize = 256;
+	private int previewFrameWidth = 256;
+	private int previewFrameHeight = 256;
 	
 	/**
 	 * the default constructer
@@ -93,15 +95,18 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		//load new preview frame as a texture, if needed
 		if (frameEnqueued) {
 			frameLock.lock();
-			isTextureInitialized = false;
 			if(!isTextureInitialized) {
+				byte[] frame = new byte[textureSize*textureSize*3];
 				gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGB, textureSize,
-						textureSize, 0, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE , frameData);
+						textureSize, 0, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE ,
+						ByteBuffer.wrap(frame));
 				isTextureInitialized = true;
 			} else {
 				//just update the image
-				//TODO: can we just update a portion(non power of two)?
-				gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize,
+				//can we just update a portion(non power of two)?...seems to work
+				/*gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize,
+						GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, frameData);*/
+				gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, previewFrameWidth, previewFrameHeight,
 						GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, frameData);
 			}
 			frameLock.unlock();
@@ -189,6 +194,7 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		textureName = textureNames[0];
 		
 		textureBuffer = makeFloatBuffer(textureCoords);
+		
 	}
 	
 	/**
@@ -233,6 +239,8 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		if (!GenericFunctions.isPowerOfTwo(textureSize))
 			return;
 		this.textureSize = textureSize;
+		this.previewFrameHeight = realHeight;
+		this.previewFrameWidth = realWidth;
 		//calculate texture coords
 		this.textureCoords = new float[] {
 				// Camera preview
