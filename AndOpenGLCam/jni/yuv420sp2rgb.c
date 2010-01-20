@@ -148,8 +148,8 @@ static void common_rgb_cb(
     int i = 0;
     switch(ctx->rotate) {
     case 0: /* no rotation */
-        //offset = ctx->i * ctx->width + ctx->j;
-	offset = ctx->i * ctx->texture_size + ctx->j;
+        offset = ctx->i * ctx->width + ctx->j;
+	//offset = ctx->i * ctx->texture_size + ctx->j;
         break;
     case 1: /* 90 degrees */
         offset = ctx->height * (ctx->j + 1) - ctx->i;

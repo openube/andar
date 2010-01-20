@@ -90,7 +90,8 @@ public class CameraPreviewHandler implements PreviewCallback {
 		previewFrameWidth = previewSize.width;
 		previewFrameHeight = previewSize.height;
 		textureSize = GenericFunctions.nextPowerOfTwo(Math.max(previewFrameWidth, previewFrameHeight));
-		frame = new byte[textureSize*textureSize*3];
+		//frame = new byte[textureSize*textureSize*3];
+		frame = new byte[previewFrameWidth*previewFrameHeight*3];
 		for (int i = 0; i < frame.length; i++) {
 			frame[i]=(byte) 128;
 		}
