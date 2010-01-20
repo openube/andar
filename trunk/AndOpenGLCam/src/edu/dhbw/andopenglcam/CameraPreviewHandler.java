@@ -52,6 +52,12 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private int previewFrameWidth=240;
 	private int previewFrameHeight=160;
 	
+	static { 
+	    System.loadLibrary( "yuv420sp2rgb" ); 
+	  } 
+	
+	private native void yuv420sp2rgb(byte[] in, int width, int height, int textureSize, byte[] out);
+	
 	/**
 	 * 
 	 */
@@ -116,14 +122,14 @@ public class CameraPreviewHandler implements PreviewCallback {
    			yuvsCounter=yuvsCounter+previewFrameWidth;
    			bwCounter=bwCounter+textureSize;
    		}*/
-		
-		convertYUV2RGB(data);
+		yuv420sp2rgb(data, previewFrameWidth, previewFrameHeight, textureSize, frame);
+		//convertYUV2RGB(data);
 		//convertYUV2BWRGB(data);
 		//convertAndroidProject(data);
 		//toRGB565(data, previewFrameWidth, previewFrameHeight, frame);
 		//decodeYUV(frame, data, previewFrameWidth, previewFrameHeight);
    		
-		frameSink.setNextFrame(ByteBuffer.wrap(frame));		
+		frameSink.setNextFrame(ByteBuffer.wrap(frame));
 		frameSink.getFrameLock().unlock();
 		this.glSurfaceView.requestRender();
 		//camera.setOneShotPreviewCallback(this);
@@ -185,6 +191,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		final int bytes_per_pixel = 2;
 		int nR, nG, nB;
 		int nY, nU, nV;
+		
 
 		//iterate through all pixels
 		for (int i = 0; i < height; i++) {
