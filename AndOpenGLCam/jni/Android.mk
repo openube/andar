@@ -12,11 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+
+#color conversion lib
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := yuv420sp2rgb
 LOCAL_SRC_FILES := yuv420sp2rgb.c
+
+include $(BUILD_SHARED_LIBRARY)
+
+# image processing lib
+#
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := imageprocessing
+LOCAL_SRC_FILES := image_processing.c
+
+#LOCAL_STATIC_LIBRARIES := libyuv420sp2rgb
 
 include $(BUILD_SHARED_LIBRARY)

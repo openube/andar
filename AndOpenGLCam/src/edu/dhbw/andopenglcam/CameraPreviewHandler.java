@@ -22,6 +22,8 @@ package edu.dhbw.andopenglcam;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import edu.dhbw.andopenglcam.interfaces.PreviewFrameSink;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
@@ -52,20 +54,69 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private int previewFrameWidth=240;
 	private int previewFrameHeight=160;
 	
-	static { 
-	    System.loadLibrary( "yuv420sp2rgb" ); 
-	  } 
+	//Modes:
+	public final static int MODE_RGB=0;
+	public final static int MODE_GRAY=1;
+	public final static int MODE_BIN=2;
+	public final static int MODE_EDGE=3;
+	public final static int MODE_CONTOUR=4;
+	private int mode = MODE_GRAY;
 	
-	private native void yuv420sp2rgb(byte[] in, int width, int height, int textureSize, byte[] out);
 	
-	/**
-	 * 
-	 */
 	public CameraPreviewHandler(GLSurfaceView glSurfaceView, PreviewFrameSink sink, Resources res) {
 		this.glSurfaceView = glSurfaceView;
 		this.frameSink = sink;
 		this.res = res;
 	}
+	
+	/**
+	 * native library
+	 */
+	static { 
+	    System.loadLibrary( "imageprocessing" );
+	    System.loadLibrary( "yuv420sp2rgb" );	     
+	} 
+	
+	/**
+	 * native function, that converts a byte array from ycbcr420 to RGB
+	 * @param in
+	 * @param width
+	 * @param height
+	 * @param textureSize
+	 * @param out
+	 */
+	private native void yuv420sp2rgb(byte[] in, int width, int height, int textureSize, byte[] out);
+
+	/**
+	 * binarize a image
+	 * @param in the input array
+	 * @param width image width
+	 * @param height image height
+	 * @param out the output array
+	 * @param threshold the binarization threshold
+	 */
+	private native void binarize(byte[] in, int width, int height, byte[] out, int threshold);
+	
+	/**
+	 * detect edges in the image
+	 * @param in the image
+	 * @param width image width
+	 * @param height image height
+	 * @param magnitude the magnitude of the edge(width*height bytes)
+	 * @param gradient the gradient(angle) of the edge(width*height bytes)
+	 */
+	private native void detect_edges(byte[] in, int width, int height, byte[] out, int threshold);
+
+	/**
+	 * detect edges in the image
+	 * @param in the image
+	 * @param width image width
+	 * @param height image height
+	 * @param magnitude the magnitude of the edge(width*height bytes)
+	 * @param gradient the gradient(angle) of the edge(width*height bytes)
+	 */
+	private native void detect_edges_simple(byte[] in, int width, int height, byte[] out, int threshold);
+
 	
 	/**
 	 * the size of the camera preview frame is dynamic
@@ -92,16 +143,20 @@ public class CameraPreviewHandler implements PreviewCallback {
 		textureSize = GenericFunctions.nextPowerOfTwo(Math.max(previewFrameWidth, previewFrameHeight));
 		//frame = new byte[textureSize*textureSize*3];
 		frame = new byte[previewFrameWidth*previewFrameHeight*3];
+		gradient = new float[previewFrameWidth*previewFrameHeight];
 		for (int i = 0; i < frame.length; i++) {
 			frame[i]=(byte) 128;
 		}
 		frameSink.setPreviewFrameSize(textureSize, previewFrameWidth, previewFrameHeight);
+		//default mode:
+		setMode(MODE_GRAY);
 	}
 
 	//size of a texture must be a power of 2
-	private byte[] frame;//=new byte[256*256];
+	private byte[] frame;
+	private float[] gradient;
 	
-	/* 
+	/**
 	 * new frame from the camera arrived. convert and hand over
 	 * to the renderer
 	 * how to convert between YUV and RGB:http://en.wikipedia.org/wiki/YUV#Y.27UV444
@@ -114,236 +169,56 @@ public class CameraPreviewHandler implements PreviewCallback {
 	public void onPreviewFrame(byte[] data, Camera camera) {
 		//prevent null pointer exceptions
 		if (data == null) return;
-		
 		frameSink.getFrameLock().lock();
-   		/*int bwCounter=0;
-   		int yuvsCounter=0;
-   		for (int y=0;y<previewFrameHeight;y++) {
-   			System.arraycopy(data, yuvsCounter, frame, bwCounter, previewFrameWidth);
-   			yuvsCounter=yuvsCounter+previewFrameWidth;
-   			bwCounter=bwCounter+textureSize;
-   		}*/
-		yuv420sp2rgb(data, previewFrameWidth, previewFrameHeight, textureSize, frame);
-		//convertYUV2RGB(data);
-		//convertYUV2BWRGB(data);
-		//convertAndroidProject(data);
-		//toRGB565(data, previewFrameWidth, previewFrameHeight, frame);
-		//decodeYUV(frame, data, previewFrameWidth, previewFrameHeight);
-   		
-		frameSink.setNextFrame(ByteBuffer.wrap(frame));
+		
+		switch(mode) {
+		case MODE_RGB:
+			//color:
+			yuv420sp2rgb(data, previewFrameWidth, previewFrameHeight, textureSize, frame);   
+			frameSink.setNextFrame(ByteBuffer.wrap(frame));
+			break;
+		case MODE_GRAY:
+			//luminace: 
+			frameSink.setNextFrame(ByteBuffer.wrap(data));
+			break;
+		case MODE_BIN:
+			binarize(data, previewFrameWidth, previewFrameHeight, frame, 80);
+			frameSink.setNextFrame(ByteBuffer.wrap(frame));
+			break;
+		case MODE_EDGE:
+			detect_edges(data, previewFrameWidth, previewFrameHeight, frame,20);
+			frameSink.setNextFrame(ByteBuffer.wrap(frame));
+			break;
+		case MODE_CONTOUR:
+			detect_edges_simple(data, previewFrameWidth, previewFrameHeight, frame,150);
+			frameSink.setNextFrame(ByteBuffer.wrap(frame));
+			break;
+		}
+		
 		frameSink.getFrameLock().unlock();
 		this.glSurfaceView.requestRender();
 		//camera.setOneShotPreviewCallback(this);
 	}
 	
-	private void convertYUV2BWRGB(byte[] data) {
-		int pixelPtr=0;
-		//iterate through all pixels
-		for (int i = 0; i < previewFrameHeight; i++) {
-            for (int j = 0; j < previewFrameWidth; j++) {            	
-            	frame[pixelPtr++]=data[i * previewFrameWidth + j];//R
-            	frame[pixelPtr++]=data[i * previewFrameWidth + j];//G
-            	frame[pixelPtr++]=data[i * previewFrameWidth + j];//B
-            }
-            pixelPtr = (i+1) * textureSize * 3;
+	protected void setMode(int pMode) {
+		this.mode = pMode;
+		switch(mode) {
+		case MODE_RGB:
+			frameSink.setMode(GL10.GL_RGB);
+			break;
+		case MODE_GRAY:
+			frameSink.setMode(GL10.GL_LUMINANCE);
+			break;
+		case MODE_BIN:
+			frameSink.setMode(GL10.GL_LUMINANCE);
+			break;
+		case MODE_EDGE:
+			frameSink.setMode(GL10.GL_LUMINANCE);
+			break;
+		case MODE_CONTOUR:
+			frameSink.setMode(GL10.GL_LUMINANCE);
+			break;
 		}
 	}
-	
-	private void convertYUV2RGB(byte[] data) {
-		int pixelPtr=0;
-		int pUV = previewFrameWidth * previewFrameHeight;
-		//iterate through all pixels
-		for (int i = 0; i < previewFrameHeight; i++) {
-            for (int j = 0; j < previewFrameWidth; j++) {
-            	int nY = data[i * previewFrameWidth + j];
-            	int nV = data[pUV + (i/2) * previewFrameWidth + 2 * (j/2)];
-                int nU = data[pUV + (i/2) * previewFrameWidth + 2 * (j/2) + 1];
-                // Yuv Convert
-                //nY -= 16;
-                //nU -= 128;
-                //nV -= 128;
-                int nR = (int)(1.164 * nY + 2.018 * nU);
-                int nG = (int)(1.164 * nY - 0.813 * nV - 0.391 * nU);
-                int nB = (int)(1.164 * nY + 1.596 * nV);
-                
-                //http://www.jpeg.org/public/jfif.pdf
-                //int nR=(int)(nY  + 1.402 * (nV-128));
-                //int nG = (int)(nY - 0.34414 * (nU-128) - 0.71414 * (nV-128));
-                //int nB = (int)(nY + 1.772 * (nU-128));
-                //int nR = (int)((298.082 * nY + 408.583 *nV)/256.0 -222.921);
-                //int nG = (int)((298.082 * nY - 100.291 *nU - 208.120 * nV)/256.0 + 135.576);
-                //int nB = (int)((298.082 * nY + 516.412 *nU)/256.0 - 276.836);
-                
-                frame[pixelPtr++]=(byte)nB;
-                frame[pixelPtr++]=(byte)nG;
-                frame[pixelPtr++]=(byte)nR;
-            }
-            pixelPtr = (i+1) * textureSize * 3;
-		}
-	}
-	
-	
-	private void convertAndroidProject(byte[] data) {
-		int pY = 0;
-		int pUV = previewFrameWidth * previewFrameHeight;
-		int pixelPtr=0;
-		int width = previewFrameWidth;
-		int height = previewFrameHeight;
-		final int bytes_per_pixel = 2;
-		int nR, nG, nB;
-		int nY, nU, nV;
-		
-
-		//iterate through all pixels
-		for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                nY = data[pY + i * width + j];
-                nV = data[pUV + (i/2) * width + bytes_per_pixel * (j/2)];
-                nU = data[pUV + (i/2) * width + bytes_per_pixel * (j/2) + 1];
-            
-                // Yuv Convert
-                nY -= 16;
-                nU -= 128;
-                nV -= 128;
-            
-                if (nY < 0)
-                    nY = 0;
-            
-                 //nR = (int)(1.164 * nY + 2.018 * nU);
-                 //nG = (int)(1.164 * nY - 0.813 * nV - 0.391 * nU);
-                 //nB = (int)(1.164 * nY + 1.596 * nV);
-            
-                nB = (int)(1192 * nY + 2066 * nU);
-                nG = (int)(1192 * nY - 833 * nV -  400 * nU);
-                nR = (int)(1192 * nY + 1634 * nV);
-            
-                nR = Math.min(262143, Math.max(0, nR));
-                nG = Math.min(262143, Math.max(0, nG));
-                nB = Math.min(262143, Math.max(0, nB));
-            
-                nR >>= 10; nR &= 0xff;
-                nG >>= 10; nG &= 0xff;
-                nB >>= 10; nB &= 0xff;
-                
-                frame[pixelPtr++] = (byte) nR;
-                frame[pixelPtr++] = (byte) nG;
-                frame[pixelPtr++] = (byte) nB;
-            }
-            pixelPtr = (i+1) * textureSize * 3;
-        }
-	}
-	
-	/**
-	 * Converts semi-planar YUV420 as generated for camera preview into RGB565
-	 * format for use as an OpenGL ES texture. It assumes that both the input
-	 * and output data are contiguous and start at zero.
-	 * 
-	 * @param yuvs the array of YUV420 semi-planar data
-	 * @param rgbs an array into which the RGB565 data will be written
-	 * @param width the number of pixels horizontally
-	 * @param height the number of pixels vertically
-	 */
-
-	//we tackle the conversion two pixels at a time for greater speed
-	private void toRGB565(byte[] yuvs, int width, int height, byte[] rgbs) {
-	    //the end of the luminance data
-	    final int lumEnd = width * height;
-	    //points to the next luminance value pair
-	    int lumPtr = 0;
-	    //points to the next chromiance value pair
-	    int chrPtr = lumEnd;
-	    //points to the next byte output pair of RGB565 value
-	    int outPtr = 0;
-	    //the end of the current luminance scanline
-	    int lineEnd = width;
-
-	    int row = 0;
-	    
-	    while (true) {
-
-	        //skip back to the start of the chromiance values when necessary
-	        if (lumPtr == lineEnd) {
-	            if (lumPtr == lumEnd) break; //we've reached the end
-	            //division here is a bit expensive, but's only done once per scanline
-	            chrPtr = lumEnd + ((lumPtr  >> 1) / width) * width;
-	            lineEnd += width;
-	            row++;
-	            outPtr = row * textureSize * 3;
-	        }
-
-	        //read the luminance and chromiance values
-	        final int Y1 = yuvs[lumPtr++] & 0xff; 
-	        final int Y2 = yuvs[lumPtr++] & 0xff; 
-	        final int Cr = (yuvs[chrPtr++] & 0xff) - 128; 
-	        final int Cb = (yuvs[chrPtr++] & 0xff) - 128;
-	        int R, G, B;
-
-	        //generate first RGB components
-	        B = Y1 + ((454 * Cb) >> 8);
-	        if(B < 0) B = 0; else if(B > 255) B = 255; 
-	        G = Y1 - ((88 * Cb + 183 * Cr) >> 8); 
-	        if(G < 0) G = 0; else if(G > 255) G = 255; 
-	        R = Y1 + ((359 * Cr) >> 8); 
-	        if(R < 0) R = 0; else if(R > 255) R = 255; 
-	        //NOTE: this assume little-endian encoding
-	        rgbs[outPtr++]  = (byte) (((G & 0x3c) << 3) | (B >> 3));
-	        rgbs[outPtr++]  = (byte) ((R & 0xf8) | (G >> 5));
-
-	        //generate second RGB components
-	        B = Y2 + ((454 * Cb) >> 8);
-	        if(B < 0) B = 0; else if(B > 255) B = 255; 
-	        G = Y2 - ((88 * Cb + 183 * Cr) >> 8); 
-	        if(G < 0) G = 0; else if(G > 255) G = 255; 
-	        R = Y2 + ((359 * Cr) >> 8); 
-	        if(R < 0) R = 0; else if(R > 255) R = 255; 
-	        //NOTE: this assume little-endian encoding
-	        rgbs[outPtr++]  = (byte) (((G & 0x3c) << 3) | (B >> 3));
-	        rgbs[outPtr++]  = (byte) ((R & 0xf8) | (G >> 5));
-	    }
-	}
-	
-	// decode Y, U, and V values on the YUV 420 buffer described as	YCbCr_422_SP by Android
-	// David Manpearl 081201
-	public void decodeYUV(byte[] out, byte[] fg, int width, int height) throws NullPointerException, IllegalArgumentException {
-	        final int sz = width * height;
-	        if(out == null) throw new NullPointerException("buffer 'out' is	null");
-	        if(out.length < sz) throw new IllegalArgumentException("buffer 'out'	size " + out.length + " < minimum " + sz);
-	        if(fg == null) throw new NullPointerException("buffer 'fg' is null");
-	        if(fg.length < sz) throw new IllegalArgumentException("buffer 'fg'	size " + fg.length + " < minimum " + sz * 3/ 2);
-	        int i, j;
-	        int Y, Cr = 0, Cb = 0;
-	        int pixPtr=0;
-	        for(j = 0; j < height; j++) {
-	                //int pixPtr = j * width;
-	                final int jDiv2 = j >> 1;
-	                for(i = 0; i < width; i++) {
-	                        Y = fg[pixPtr]; if(Y < 0) Y += 255;
-	                        if((i & 0x1) != 1) {
-	                                final int cOff = sz + jDiv2 * width + (i >> 1) * 2;
-	                                Cb = fg[cOff];
-	                                if(Cb < 0) Cb += 127; else Cb -= 128;
-	                                Cr = fg[cOff + 1];
-	                                if(Cr < 0) Cr += 127; else Cr -= 128;
-	                        }
-	                        int R = Y + Cr + (Cr >> 2) + (Cr >> 3) + (Cr >> 5);
-	                        if(R < 0) R = 0; else if(R > 255) R = 255;
-	                        int G = Y - (Cb >> 2) + (Cb >> 4) + (Cb >> 5) - (Cr >> 1) + (Cr >>
-	3) + (Cr >> 4) + (Cr >> 5);
-	                        if(G < 0) G = 0; else if(G > 255) G = 255;
-	                        int B = Y + Cb + (Cb >> 1) + (Cb >> 2) + (Cb >> 6);
-	                        if(B < 0) B = 0; else if(B > 255) B = 255;
-	                        //out[pixPtr++] = 0xff000000 + (B << 16) + (G << 8) + R;
-	                        out[pixPtr++]=(byte)R;
-                            out[pixPtr++]=(byte)G;
-                            out[pixPtr++]=(byte)B;
-	                }
-	                pixPtr = (j+1) * textureSize * 3;
-	        }
-
-	}
-
-
-
-
 
 }
