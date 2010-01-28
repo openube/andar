@@ -1,7 +1,7 @@
 #include <string.h>
 #include <jni.h>
 #include <yuv420sp2rgb.h>
-#include <yuv420sp2rgbjni.h>
+#include <preview_handler_jni.h>
 
 #ifndef max
 #define max(a,b) ({typeof(a) _a = (a); typeof(b) _b = (b); _a > _b ? _a : _b; })

@@ -27,6 +27,8 @@ import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.Window;
 import android.view.WindowManager;
@@ -108,7 +110,7 @@ public class OpenGLCamActivity extends Activity implements Callback{
     		camera = CameraHolder.instance().open();
 	        Parameters params = camera.getParameters();
 	        params.setPreviewSize(240,160);
-	        //params.setPreviewFrameRate(10);//TODO remove restriction
+	        params.setPreviewFrameRate(1);//TODO remove restriction
 	        camera.setParameters(params);
 	        camera.setPreviewCallback(cameraHandler);
 	        //camera.setOneShotPreviewCallback(cameraHandler);
@@ -170,6 +172,28 @@ public class OpenGLCamActivity extends Activity implements Callback{
 	public void surfaceDestroyed(SurfaceHolder holder) {
         stopPreview();
         closeCamera();
+	}
+	
+	/* (non-Javadoc)
+	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+    	menu.add(0, CameraPreviewHandler.MODE_RGB, 0, res.getText(R.string.mode_rgb));
+	    menu.add(0, CameraPreviewHandler.MODE_GRAY, 0, res.getText(R.string.mode_gray));
+	    menu.add(0, CameraPreviewHandler.MODE_BIN, 0, res.getText(R.string.mode_bin));
+	    menu.add(0, CameraPreviewHandler.MODE_EDGE, 0, res.getText(R.string.mode_edges));
+	    menu.add(0, CameraPreviewHandler.MODE_CONTOUR, 0, res.getText(R.string.mode_contours));   
+		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		this.cameraHandler.setMode(item.getItemId());
+		return true;
 	}
 
 }

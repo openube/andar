@@ -21,5 +21,10 @@ public final class R {
     public static final class string {
         public static final int app_name=0x7f040000;
         public static final int error_unkown_pixel_format=0x7f040001;
+        public static final int mode_bin=0x7f040006;
+        public static final int mode_contours=0x7f040005;
+        public static final int mode_edges=0x7f040004;
+        public static final int mode_gray=0x7f040003;
+        public static final int mode_rgb=0x7f040002;
     }
 }

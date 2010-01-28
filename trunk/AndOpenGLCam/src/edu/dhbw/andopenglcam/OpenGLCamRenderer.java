@@ -51,7 +51,6 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private boolean DEBUG = false;
 	private int textureName;
 	private float[] square;
-	private float[] testSquare;
 	float[] textureCoords = new float[] {
 			// Camera preview
 			 0.0f, 0.625f,
@@ -62,7 +61,6 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	
 	private FloatBuffer textureBuffer;
 	private FloatBuffer squareBuffer;
-	private FloatBuffer testSquareBuffer;
 	private boolean frameEnqueued = false;
 	private ByteBuffer frameData = null;
 	private ReentrantLock frameLock = new ReentrantLock();
@@ -71,6 +69,11 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private int textureSize = 256;
 	private int previewFrameWidth = 256;
 	private int previewFrameHeight = 256;
+	
+	/**
+	 * mode, being either GL10.GL_RGB or GL10.GL_LUMINANCE
+	 */
+	private int mode = GL10.GL_RGB;
 	
 	/**
 	 * the default constructer
@@ -96,26 +99,16 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		if (frameEnqueued) {
 			frameLock.lock();
 			if(!isTextureInitialized) {
-				byte[] frame = new byte[textureSize*textureSize*3];
-				gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGB, textureSize,
-						textureSize, 0, GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE ,
-						ByteBuffer.wrap(frame));
-				isTextureInitialized = true;
+				initializeTexture(gl);
 			} else {
 				//just update the image
 				//can we just update a portion(non power of two)?...seems to work
-				/*gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, textureSize, textureSize,
-						GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, frameData);*/
 				gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, previewFrameWidth, previewFrameHeight,
-						GL10.GL_RGB, GL10.GL_UNSIGNED_BYTE, frameData);
+						mode, GL10.GL_UNSIGNED_BYTE, frameData);
 			}
 			frameLock.unlock();
-			
-			/*Bitmap bitmap = BitmapFactory.decodeResource(res, R.drawable.nehe2);
-			GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);*/
-			//gl.glTexSubImage2D(type, 0, 0, 0, width, height, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, bb);
 			gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
-			//gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+			gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
 			frameEnqueued = false;
 		}
 		
@@ -127,17 +120,11 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);		
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, squareBuffer);
 		
+		//draw camera square
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
 		
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
-		
-		//draw blue square
-		/*gl.glColor4f(0, 0, 1, 0.5f);		
-		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, testSquareBuffer);
-		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
-		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);*/
 	}
 	
 
@@ -160,23 +147,12 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 		gl.glLoadIdentity();
 		
-		
-		/*square = new float[] { 	-100f, -100.0f/aspectRatio, -1f,
-								 100f, -100.0f/aspectRatio, -1f,
-								-100f, 100.0f/aspectRatio, -1f,
-								 100f, 100.0f/aspectRatio, -1f };*/
 		square = new float[] { 	-100f*aspectRatio, -100.0f, -1f,
 				 100f*aspectRatio, -100.0f, -1f,
 				-100f*aspectRatio, 100.0f, -1f,
 				 100f*aspectRatio, 100.0f, -1f };
 		
-		testSquare = new float[] { 	-100f*aspectRatio*0.5f, -100.0f*0.5f, 0f,
-				 100f*aspectRatio*0.5f, -100.0f*0.5f, 0f,
-				-100f*aspectRatio*0.5f, 100.0f*0.5f, 0f,
-				 100f*aspectRatio*0.5f, 100.0f*0.5f, 0f };
-		
 		squareBuffer = makeFloatBuffer(square);		
-		testSquareBuffer = makeFloatBuffer(testSquare);
 	}
 
 	/* (non-Javadoc)
@@ -251,9 +227,46 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 			};		
 	}
 	
+	private void initializeTexture (GL10 gl) {
+		byte[] frame;
+		switch(mode) {
+		default:
+			mode = GL10.GL_RGB;
+		case GL10.GL_RGB:
+			frame = new byte[textureSize*textureSize*3];
+			break;
+		case GL10.GL_LUMINANCE:
+			frame = new byte[textureSize*textureSize];
+			break;
+		}
+		gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, mode, textureSize,
+				textureSize, 0, mode, GL10.GL_UNSIGNED_BYTE ,
+				ByteBuffer.wrap(frame));
+		isTextureInitialized = true;		
+	}
+	
+	/**
+	 * sets the mode(either GL10.GL_RGB or GL10.GL_LUMINANCE)
+	 * @param pMode
+	 */
+	public void setMode(int pMode) {
+		switch(pMode) {		
+		case GL10.GL_RGB:
+		case GL10.GL_LUMINANCE:
+			this.mode = pMode;
+			break;
+		default:
+			this.mode = GL10.GL_RGB;
+		}
+	}
+	
 }
 
-
+/**
+ * write stuff to Android log
+ * @author Tobias Domhan
+ *
+ */
 class LogWriter extends Writer {
 
     @Override public void close() {
