@@ -31,6 +31,7 @@ import edu.union.graphics.IntMesh;
 import edu.union.graphics.MD2Loader;
 import edu.union.graphics.Model;
 import edu.union.graphics.ObjLoader;
+import edu.union.graphics.SerializedLoader;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -96,6 +97,8 @@ public class ModelViewerActivity extends Activity {
         loader = new MD2Loader();
         loader.setFactory(FloatMesh.factory());
         availableModelLoaders.add(loader);
+        SerializedLoader serializedLoader = new SerializedLoader();
+        availableModelLoaders.add(serializedLoader);
         
         
         loader = getModelloaderForFile(modelFile);
@@ -112,6 +115,10 @@ public class ModelViewerActivity extends Activity {
 			//load Model if it wasn't restored from another session
 			if(model == null) {
 				model = loader.load(modelFile);
+				if(loader != serializedLoader) {
+					//write out serialized for faster loading in the future:
+					serializedLoader.serialize(model, modelFile);
+				}
 			}
 			model3D = new Model3D(model);
 			renderer = new ModelRenderer(model3D);
