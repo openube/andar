@@ -59,6 +59,19 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 			 0.9375f, 0.0f			 
 		};
 	
+	/**
+	 * Light definitions
+	 */
+	private float[] ambientlight = {.3f, .3f, .3f, 1f};
+	private float[] diffuselight = {.7f, .7f, .7f, 1f};
+	private float[] specularlight = {0.6f, 0.6f, 0.6f, 1f};
+	private float[] specref = {0.99f,	0.94f,	0.81f,	1.0f};
+	private FloatBuffer specrefBuffer = makeFloatBuffer(specref);
+	private float[] difcref = {0.78f,	0.57f,	0.11f,	1.0f};
+	private FloatBuffer difcrefBuffer = makeFloatBuffer(difcref);
+	private float[] ambref = {	0.33f,	0.22f,	0.03f,	1.0f};
+	private FloatBuffer ambrefBuffer = makeFloatBuffer(ambref);
+	
 	private FloatBuffer textureBuffer;
 	private FloatBuffer squareBuffer;
 	private boolean frameEnqueued = false;
@@ -69,6 +82,8 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private int textureSize = 256;
 	private int previewFrameWidth = 256;
 	private int previewFrameHeight = 256;
+	private MarkerInfo markerInfo;
+	private float aspectRatio=1;
 	
 	/**
 	 * mode, being either GL10.GL_RGB or GL10.GL_LUMINANCE
@@ -80,9 +95,9 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	 * @param int the {@link PixelFormat} of the Camera preview
 	 * @param res Resources
 	 */
-	public OpenGLCamRenderer(Resources res)  {
+	public OpenGLCamRenderer(Resources res, MarkerInfo markerInfo)  {
 		this.res = res;
-		
+		this.markerInfo = markerInfo;
 	}
 
 	/* (non-Javadoc)
@@ -93,7 +108,8 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		if(DEBUG)
 			gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
-		
+		setupDraw2D(gl);
+		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureName);
 		//load new preview frame as a texture, if needed
 		if (frameEnqueued) {
@@ -112,7 +128,7 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 			frameEnqueued = false;
 		}
 		
-		gl.glColor4f(1, 1, 1, 0.5f);	
+		gl.glColor4f(1, 1, 1, 1f);	
 		//draw camera preview frame:
 		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
@@ -125,6 +141,16 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		
+		
+		/*gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, specrefBuffer);
+		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, ambrefBuffer);
+		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_DIFFUSE, difcrefBuffer);
+		gl.glMaterialf(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, 27.9f);*/
+		markerInfo.getTransMatLock().lock();
+		//paint the object onto the marker
+		markerInfo.draw(gl);
+		markerInfo.getTransMatLock().unlock();
 	}
 	
 
@@ -135,24 +161,27 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		//TODO handle landscape view
 		gl.glViewport(0, 0, width, height);
-		gl.glMatrixMode(GL10.GL_PROJECTION);
-		gl.glLoadIdentity();
-		//http://developer.android.com/reference/android/opengl/GLU.html#gluPerspective%28javax.microedition.khronos.opengles.GL10,%20float,%20float,%20float,%20float%29
-		//GLU.gluPerspective(gl, 45.0f, (float) width / (float) height, 0.1f, 100.0f);
-		float aspectRatio = (float)width/(float)height;
-		//gl.glOrthof(-100.0f, 100.0f, -100.0f/aspectRatio, 100.0f/aspectRatio, 1.0f, -1.0f);
-		
-		gl.glOrthof(-100.0f*aspectRatio, 100.0f*aspectRatio, -100.0f, 100.0f, 1.0f, -1.0f);
-		
-		gl.glMatrixMode(GL10.GL_MODELVIEW);
-		gl.glLoadIdentity();
-		
+		aspectRatio = (float)width/(float)height;
+		setupDraw2D(gl);		
 		square = new float[] { 	-100f*aspectRatio, -100.0f, -1f,
 				 100f*aspectRatio, -100.0f, -1f,
 				-100f*aspectRatio, 100.0f, -1f,
 				 100f*aspectRatio, 100.0f, -1f };
 		
 		squareBuffer = makeFloatBuffer(square);		
+		markerInfo.setScreenSize(width, height);
+	}
+	
+	/**
+	 * Setup OpenGL to draw in 2D.
+	 */
+	private void setupDraw2D(GL10 gl) {
+		gl.glMatrixMode(GL10.GL_PROJECTION);
+		gl.glLoadIdentity();
+		gl.glOrthof(-100.0f*aspectRatio, 100.0f*aspectRatio, -100.0f, 100.0f, 1.0f, -1.0f);
+		
+		gl.glMatrixMode(GL10.GL_MODELVIEW);
+		gl.glLoadIdentity();
 	}
 
 	/* (non-Javadoc)
@@ -170,6 +199,15 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		textureName = textureNames[0];
 		
 		textureBuffer = makeFloatBuffer(textureCoords);
+		
+		//lighting
+		gl.glEnable(GL10.GL_LIGHTING);
+		gl.glLightfv(gl.GL_LIGHT0, gl.GL_AMBIENT, makeFloatBuffer(ambientlight));
+		gl.glLightfv(gl.GL_LIGHT0, gl.GL_DIFFUSE, makeFloatBuffer(diffuselight));
+		gl.glLightfv(gl.GL_LIGHT0, gl.GL_SPECULAR, makeFloatBuffer(specularlight));
+		gl.glEnable(gl.GL_LIGHT0);
+		
+		gl.glEnable(GL10.GL_COLOR_MATERIAL);
 		
 	}
 	
