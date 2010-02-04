@@ -33,6 +33,7 @@ import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 /**
  * Handles callbacks of the camera preview
@@ -53,6 +54,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private int textureSize=256;
 	private int previewFrameWidth=240;
 	private int previewFrameHeight=160;
+	private int ctr = 0;
 	
 	//Modes:
 	public final static int MODE_RGB=0;
@@ -61,20 +63,23 @@ public class CameraPreviewHandler implements PreviewCallback {
 	public final static int MODE_EDGE=3;
 	public final static int MODE_CONTOUR=4;
 	private int mode = MODE_GRAY;
+	private MarkerInfo markerInfo;
 	
 	
-	public CameraPreviewHandler(GLSurfaceView glSurfaceView, PreviewFrameSink sink, Resources res) {
+	public CameraPreviewHandler(GLSurfaceView glSurfaceView,
+			PreviewFrameSink sink, Resources res, MarkerInfo markerInfo) {
 		this.glSurfaceView = glSurfaceView;
 		this.frameSink = sink;
 		this.res = res;
+		this.markerInfo = markerInfo;
 	}
 	
 	/**
-	 * native library
+	 * native libraries
 	 */
 	static { 
 	    System.loadLibrary( "imageprocessing" );
-	    System.loadLibrary( "yuv420sp2rgb" );	     
+	    System.loadLibrary( "yuv420sp2rgb" );	
 	} 
 	
 	/**
@@ -116,7 +121,6 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 * @param gradient the gradient(angle) of the edge(width*height bytes)
 	 */
 	private native void detect_edges_simple(byte[] in, int width, int height, byte[] out, int threshold);
-
 	
 	/**
 	 * the size of the camera preview frame is dynamic
@@ -149,7 +153,8 @@ public class CameraPreviewHandler implements PreviewCallback {
 		}
 		frameSink.setPreviewFrameSize(textureSize, previewFrameWidth, previewFrameHeight);
 		//default mode:
-		setMode(MODE_GRAY);
+		setMode(MODE_BIN);
+		markerInfo.setImageSize(previewFrameWidth, previewFrameHeight);
 	}
 
 	//size of a texture must be a power of 2
@@ -170,7 +175,12 @@ public class CameraPreviewHandler implements PreviewCallback {
 		//prevent null pointer exceptions
 		if (data == null) return;
 		frameSink.getFrameLock().lock();
-		
+		markerInfo.getTransMatLock().lock();
+		ctr++;
+		if(ctr>=5) {
+			markerInfo.detectMarkers(data);
+			ctr=0;
+		}
 		switch(mode) {
 		case MODE_RGB:
 			//color:
@@ -180,9 +190,12 @@ public class CameraPreviewHandler implements PreviewCallback {
 		case MODE_GRAY:
 			//luminace: 
 			frameSink.setNextFrame(ByteBuffer.wrap(data));
+			//int num_markers = artoolkit_detectmarkers(data, markerInfo.getGlTransMat());
+			//markerInfo.setMarkerNum(num_markers);
+			//Log.e("DETECTED MARKERS:", ""+num_markers);			
 			break;
 		case MODE_BIN:
-			binarize(data, previewFrameWidth, previewFrameHeight, frame, 80);
+			binarize(data, previewFrameWidth, previewFrameHeight, frame, 100);
 			frameSink.setNextFrame(ByteBuffer.wrap(frame));
 			break;
 		case MODE_EDGE:
@@ -195,8 +208,10 @@ public class CameraPreviewHandler implements PreviewCallback {
 			break;
 		}
 		
+		markerInfo.getTransMatLock().unlock();
 		frameSink.getFrameLock().unlock();
 		this.glSurfaceView.requestRender();
+		//camera.setOneShotPreviewCallback(null);
 		//camera.setOneShotPreviewCallback(this);
 	}
 	

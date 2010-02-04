@@ -19,6 +19,8 @@
  */
 package edu.dhbw.andopenglcam;
 
+import java.io.IOException;
+
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
@@ -42,6 +44,7 @@ public class OpenGLCamActivity extends Activity implements Callback{
 	private CameraPreviewHandler cameraHandler;
 	private boolean mPreviewing = false;
 	private boolean mPausing = false;
+	private MarkerInfo markerInfo = new MarkerInfo();
 	
     /** Called when the activity is first created. */
     @Override
@@ -53,8 +56,8 @@ public class OpenGLCamActivity extends Activity implements Callback{
 
         res = getResources();     
         glSurfaceView = new OpenGLCamView(this);
-		renderer = new OpenGLCamRenderer(res);
-		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res);
+		renderer = new OpenGLCamRenderer(res, markerInfo);
+		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, markerInfo);
         glSurfaceView.setRenderer(renderer);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         glSurfaceView.getHolder().addCallback(this);
@@ -113,7 +116,7 @@ public class OpenGLCamActivity extends Activity implements Callback{
 	        params.setPreviewFrameRate(1);//TODO remove restriction
 	        camera.setParameters(params);
 	        camera.setPreviewCallback(cameraHandler);
-	        //camera.setOneShotPreviewCallback(cameraHandler);
+	        ///camera.setOneShotPreviewCallback(cameraHandler);
 	        try {
 				cameraHandler.init(camera);
 			} catch (Exception e) {
