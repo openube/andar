@@ -54,7 +54,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private int textureSize=256;
 	private int previewFrameWidth=240;
 	private int previewFrameHeight=160;
-	private int ctr = 0;
+	private int bwSize=previewFrameWidth*previewFrameHeight;//size of the black/white image
 	
 	//Modes:
 	public final static int MODE_RGB=0;
@@ -63,7 +63,9 @@ public class CameraPreviewHandler implements PreviewCallback {
 	public final static int MODE_EDGE=3;
 	public final static int MODE_CONTOUR=4;
 	private int mode = MODE_GRAY;
+	private Object modeLock = new Object();
 	private MarkerInfo markerInfo;
+	private ConversionWorker convWorker;
 	
 	
 	public CameraPreviewHandler(GLSurfaceView glSurfaceView,
@@ -72,6 +74,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		this.frameSink = sink;
 		this.res = res;
 		this.markerInfo = markerInfo;
+		convWorker = new ConversionWorker(sink);
 	}
 	
 	/**
@@ -146,20 +149,19 @@ public class CameraPreviewHandler implements PreviewCallback {
 		previewFrameHeight = previewSize.height;
 		textureSize = GenericFunctions.nextPowerOfTwo(Math.max(previewFrameWidth, previewFrameHeight));
 		//frame = new byte[textureSize*textureSize*3];
-		frame = new byte[previewFrameWidth*previewFrameHeight*3];
-		gradient = new float[previewFrameWidth*previewFrameHeight];
+		bwSize = previewFrameWidth * previewFrameHeight;
+		frame = new byte[bwSize*3];
 		for (int i = 0; i < frame.length; i++) {
 			frame[i]=(byte) 128;
 		}
 		frameSink.setPreviewFrameSize(textureSize, previewFrameWidth, previewFrameHeight);
 		//default mode:
-		setMode(MODE_GRAY);
+		setMode(MODE_RGB);
 		markerInfo.setImageSize(previewFrameWidth, previewFrameHeight);
 	}
 
 	//size of a texture must be a power of 2
 	private byte[] frame;
-	private float[] gradient;
 	
 	/**
 	 * new frame from the camera arrived. convert and hand over
@@ -175,64 +177,111 @@ public class CameraPreviewHandler implements PreviewCallback {
 		//prevent null pointer exceptions
 		if (data == null)
 			return;
-		if(frameSink.getFrameLock().isLocked())
-			return;//no need to wait, a new frame will came soon enough
-		frameSink.getFrameLock().lock();
-		ctr++;
-		if(ctr>=10) {
-			markerInfo.detectMarkers(data);
-			ctr=0;
-		}
-		switch(mode) {
-		case MODE_RGB:
-			//color:
-			yuv420sp2rgb(data, previewFrameWidth, previewFrameHeight, textureSize, frame);   
-			frameSink.setNextFrame(ByteBuffer.wrap(frame));
-			break;
-		case MODE_GRAY:
-			//luminace: 
-			frameSink.setNextFrame(ByteBuffer.wrap(data));
-			//int num_markers = artoolkit_detectmarkers(data, markerInfo.getGlTransMat());
-			//markerInfo.setMarkerNum(num_markers);
-			//Log.e("DETECTED MARKERS:", ""+num_markers);			
-			break;
-		case MODE_BIN:
-			binarize(data, previewFrameWidth, previewFrameHeight, frame, 100);
-			frameSink.setNextFrame(ByteBuffer.wrap(frame));
-			break;
-		case MODE_EDGE:
-			detect_edges(data, previewFrameWidth, previewFrameHeight, frame,20);
-			frameSink.setNextFrame(ByteBuffer.wrap(frame));
-			break;
-		case MODE_CONTOUR:
-			detect_edges_simple(data, previewFrameWidth, previewFrameHeight, frame,150);
-			frameSink.setNextFrame(ByteBuffer.wrap(frame));
-			break;
-		}
-		frameSink.getFrameLock().unlock();
-		this.glSurfaceView.requestRender();
-		//camera.setOneShotPreviewCallback(null);
-		//camera.setOneShotPreviewCallback(this);
+		convWorker.nextFrame(data);
+		markerInfo.detectMarkers(data);
 	}
 	
 	protected void setMode(int pMode) {
-		this.mode = pMode;
-		switch(mode) {
-		case MODE_RGB:
-			frameSink.setMode(GL10.GL_RGB);
-			break;
-		case MODE_GRAY:
-			frameSink.setMode(GL10.GL_LUMINANCE);
-			break;
-		case MODE_BIN:
-			frameSink.setMode(GL10.GL_LUMINANCE);
-			break;
-		case MODE_EDGE:
-			frameSink.setMode(GL10.GL_LUMINANCE);
-			break;
-		case MODE_CONTOUR:
-			frameSink.setMode(GL10.GL_LUMINANCE);
-			break;
+		synchronized (modeLock) {
+			this.mode = pMode;
+			switch(mode) {
+			case MODE_RGB:
+				frameSink.setMode(GL10.GL_RGB);
+				break;
+			case MODE_GRAY:
+				frameSink.setMode(GL10.GL_LUMINANCE);
+				break;
+			case MODE_BIN:
+				frameSink.setMode(GL10.GL_LUMINANCE);
+				break;
+			case MODE_EDGE:
+				frameSink.setMode(GL10.GL_LUMINANCE);
+				break;
+			case MODE_CONTOUR:
+				frameSink.setMode(GL10.GL_LUMINANCE);
+				break;
+			}
+		}		
+	}
+	
+	/**
+	 * A worker thread that does colorspace conversion in the background.
+	 * Need so that we can throw frames away if we can't handle the throughput.
+	 * Otherwise the more and more frames would be enqueued, if the conversion did take
+	 * too long.
+	 * @author Tobias Domhan
+	 *
+	 */
+	class ConversionWorker extends Thread {
+		private byte[] curFrame;
+		private PreviewFrameSink frameSink;
+		
+		/**
+		 * 
+		 */
+		public ConversionWorker(PreviewFrameSink frameSink) {
+			setDaemon(true);
+			this.frameSink = frameSink;
+			start();
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
+		@Override
+		public synchronized void run() {			
+			try {
+				wait();//wait for initial frame
+			} catch (InterruptedException e) {}
+			while(true) {
+				Log.d("ConversionWorker","starting conversion");
+				frameSink.getFrameLock().lock();
+				synchronized (modeLock) {
+					switch(mode) {
+					case MODE_RGB:
+						//color:
+						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
+						Log.d("ConversionWorker","handing frame over to sink");
+						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+						break;
+					case MODE_GRAY:
+						//luminace: 
+						//we will copy the array, assigning a new reference will cause multihreading issues
+						//frame = curFrame;//WILL CAUSE PROBLEMS, WHEN SWITCHING BACK TO RGB
+						System.arraycopy(curFrame, 0, frame, 0, bwSize);
+						frameSink.setNextFrame(ByteBuffer.wrap(frame));		
+						break;
+					case MODE_BIN:
+						binarize(curFrame, previewFrameWidth, previewFrameHeight, frame, 100);
+						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+						break;
+					case MODE_EDGE:
+						detect_edges(curFrame, previewFrameWidth, previewFrameHeight, frame,20);
+						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+						break;
+					case MODE_CONTOUR:
+						detect_edges_simple(curFrame, previewFrameWidth, previewFrameHeight, frame,150);
+						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+						break;
+					}
+				}
+				frameSink.getFrameLock().unlock();
+				glSurfaceView.requestRender();
+				try {
+					wait();//wait for next frame
+				} catch (InterruptedException e) {}
+			}
+		}
+		
+		synchronized void nextFrame(byte[] frame) {
+			if(this.getState() == Thread.State.WAITING) {
+				//ok, we are ready for a new frame:
+				curFrame = frame;
+				//do the work:
+				this.notify();
+			} else {
+				//ignore it
+			}
 		}
 	}
 

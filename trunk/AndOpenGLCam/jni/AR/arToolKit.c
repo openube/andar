@@ -75,7 +75,7 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_MarkerInfo_artoolkit_1init
  * Signature: ([B[D)I
  */
 JNIEXPORT jint JNICALL Java_edu_dhbw_andopenglcam_MarkerInfo_artoolkit_1detectmarkers
-  (JNIEnv *env, jobject object, jbyteArray image) {
+  (JNIEnv *env, jobject object, jbyteArray image, jobject transMatMonitor) {
     ARUint8         *dataPtr;
     ARMarkerInfo    *marker_info;
     double 	    *matrixPtr;
@@ -104,11 +104,16 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andopenglcam_MarkerInfo_artoolkit_1detectma
             else if( marker_info[k].cf < marker_info[j].cf ) k = j;
         }
     }
-    cur_marker_id = k;
+    
 
     /* get the transformation between the marker and the real camera */
     arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
+
+    //lock the matrix
+    (*env)->MonitorEnter(env, transMatMonitor);
+    cur_marker_id = k;
     argConvGlpara(patt_trans, gl_para);
+    (*env)->MonitorExit(env, transMatMonitor);
 
     (*env)->ReleaseByteArrayElements(env, image, dataPtr, 0); 
     return k;

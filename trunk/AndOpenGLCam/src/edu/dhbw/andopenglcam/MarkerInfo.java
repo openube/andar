@@ -3,9 +3,12 @@
  */
 package edu.dhbw.andopenglcam;
 
-import java.util.concurrent.locks.ReentrantLock;
+
+import java.nio.ByteBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
+
+import edu.dhbw.andopenglcam.interfaces.PreviewFrameSink;
 
 import android.util.Log;
 
@@ -22,6 +25,12 @@ public class MarkerInfo {
 	private int screenHeight = 0;
 	private int imageWidth = 0;
 	private int imageHeight = 0;
+	/**
+	 * The transformation matrix is accessed, when drawing the object(read),
+	 * but is also written to when detecting the markers from a different thread.
+	 */
+	private Object transMatMonitor = new Object();
+	private DetectMarkerWorker detectMarkerWorker = new DetectMarkerWorker();
 	
 	/**
 	 * native libraries
@@ -47,7 +56,7 @@ public class MarkerInfo {
 	 * @param matrix the transformation matrix for each marker
 	 * @return number of markers
 	 */
-	private native int artoolkit_detectmarkers(byte[] in);
+	private native int artoolkit_detectmarkers(byte[] in, Object transMatMonitor);
 	
 	private native void draw();
 	
@@ -92,46 +101,59 @@ public class MarkerInfo {
 	 */
 	public void detectMarkers(byte[] image) {
 		//make sure we initialized the native library
-		if(initialized) {
-			transMatLock.lock();
-			artoolkit_detectmarkers(image);
-			transMatLock.unlock();
+		if(initialized) {			
+			detectMarkerWorker.nextFrame(image);
 		}
 	}
 	
 	public void draw(GL10 gl) {
 		if(initialized) {
 			Log.i("MarkerInfo", "going to draw opengl stuff now");
-			draw();
+			synchronized (transMatMonitor) {
+				draw();
+			}
 		}
 	}
-    
-	/**
-	 * lock the {@link glTransMat}, in order to use it.
-	 */
-	private ReentrantLock transMatLock = new ReentrantLock();
-	/**
-	 * @return the markerNum
-	 */
-	public int getMarkerNum() {
-		return markerNum;
+	
+	class DetectMarkerWorker extends Thread {
+		private byte[] curFrame;
+		
+		/**
+		 * 
+		 */
+		public DetectMarkerWorker() {
+			setPriority(MIN_PRIORITY);
+			setDaemon(true);
+			start();
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Thread#run()
+		 */
+		@Override
+		public synchronized void run() {			
+			try {
+				wait();//wait for initial frame
+			} catch (InterruptedException e) {}
+			while(true) {
+				//the monitor is locked inside the method
+				artoolkit_detectmarkers(curFrame, transMatMonitor);
+				try {
+					wait();//wait for next frame
+				} catch (InterruptedException e) {}
+			}
+		}
+		
+		synchronized void nextFrame(byte[] frame) {
+			if(this.getState() == Thread.State.WAITING) {
+				//ok, we are ready for a new frame:
+				curFrame = frame;
+				//do the work:
+				this.notify();
+			} else {
+				//ignore it
+			}
+		}
 	}
-	/**
-	 * @param markerNum the markerNum to set
-	 */
-	public void setMarkerNum(int markerNum) {
-		this.markerNum = markerNum;
-	}
-	/**
-	 * @return the glTransMat
-	 */
-	/*public double[] getGlTransMat() {
-		return glTransMat;
-	}*/
-	/**
-	 * @return the transMatLock
-	 */
-	public ReentrantLock getTransMatLock() {
-		return transMatLock;
-	}
+
 }

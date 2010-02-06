@@ -18,10 +18,10 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_MarkerInfo_artoolkit_1init
 /*
  * Class:     edu_dhbw_andopenglcam_MarkerInfo
  * Method:    artoolkit_detectmarkers
- * Signature: ([B)I
+ * Signature: ([BLjava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_edu_dhbw_andopenglcam_MarkerInfo_artoolkit_1detectmarkers
-  (JNIEnv *, jobject, jbyteArray);
+  (JNIEnv *, jobject, jbyteArray, jobject);
 
 /*
  * Class:     edu_dhbw_andopenglcam_MarkerInfo
