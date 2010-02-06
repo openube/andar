@@ -142,21 +142,8 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
-		
-		//lighting
-		/*gl.glEnable(GL10.GL_LIGHTING);
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, makeFloatBuffer(ambientlight));
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, makeFloatBuffer(diffuselight));
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, makeFloatBuffer(specularlight));
-		gl.glEnable(GL10.GL_LIGHT0);
-		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, specrefBuffer);
-		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, ambrefBuffer);
-		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_DIFFUSE, difcrefBuffer);
-		gl.glMaterialf(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, 27.9f);*/
-		markerInfo.getTransMatLock().lock();
-		//paint the object onto the marker
+
 		markerInfo.draw(gl);
-		markerInfo.getTransMatLock().unlock();
 	}
 	
 
@@ -296,8 +283,6 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	 * @param pMode
 	 */
 	public void setMode(int pMode) {
-		if(pMode != this.mode)
-			isTextureInitialized = false;
 		switch(pMode) {		
 		case GL10.GL_RGB:
 		case GL10.GL_LUMINANCE:
@@ -305,7 +290,10 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 			break;
 		default:
 			this.mode = GL10.GL_RGB;
+			break;
 		}
+		if(pMode != this.mode)
+			isTextureInitialized = false;
 	}
 	
 }
