@@ -153,7 +153,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		}
 		frameSink.setPreviewFrameSize(textureSize, previewFrameWidth, previewFrameHeight);
 		//default mode:
-		setMode(MODE_BIN);
+		setMode(MODE_GRAY);
 		markerInfo.setImageSize(previewFrameWidth, previewFrameHeight);
 	}
 
@@ -173,11 +173,13 @@ public class CameraPreviewHandler implements PreviewCallback {
 	@Override
 	public void onPreviewFrame(byte[] data, Camera camera) {
 		//prevent null pointer exceptions
-		if (data == null) return;
+		if (data == null)
+			return;
+		if(frameSink.getFrameLock().isLocked())
+			return;//no need to wait, a new frame will came soon enough
 		frameSink.getFrameLock().lock();
-		markerInfo.getTransMatLock().lock();
 		ctr++;
-		if(ctr>=5) {
+		if(ctr>=10) {
 			markerInfo.detectMarkers(data);
 			ctr=0;
 		}
@@ -207,8 +209,6 @@ public class CameraPreviewHandler implements PreviewCallback {
 			frameSink.setNextFrame(ByteBuffer.wrap(frame));
 			break;
 		}
-		
-		markerInfo.getTransMatLock().unlock();
 		frameSink.getFrameLock().unlock();
 		this.glSurfaceView.requestRender();
 		//camera.setOneShotPreviewCallback(null);

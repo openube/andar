@@ -110,6 +110,7 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 			gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
 		setupDraw2D(gl);
 		gl.glEnable(GL10.GL_TEXTURE_2D);
+		gl.glDisable(GL10.GL_LIGHTING);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureName);
 		//load new preview frame as a texture, if needed
 		if (frameEnqueued) {
@@ -142,8 +143,13 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 		
-		
-		/*gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, specrefBuffer);
+		//lighting
+		/*gl.glEnable(GL10.GL_LIGHTING);
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, makeFloatBuffer(ambientlight));
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, makeFloatBuffer(diffuselight));
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, makeFloatBuffer(specularlight));
+		gl.glEnable(GL10.GL_LIGHT0);
+		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, specrefBuffer);
 		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, ambrefBuffer);
 		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_DIFFUSE, difcrefBuffer);
 		gl.glMaterialf(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, 27.9f);*/
@@ -193,6 +199,8 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		gl.glClearDepthf(1.0f);
 		//enable textures:
 		gl.glEnable(GL10.GL_TEXTURE_2D);
+		gl.glEnable(GL10.GL_CULL_FACE);
+		
 		int[] textureNames = new int[1];
 		//generate texture names:
 		gl.glGenTextures(1, textureNames, 0);
@@ -202,12 +210,12 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 		
 		//lighting
 		gl.glEnable(GL10.GL_LIGHTING);
-		gl.glLightfv(gl.GL_LIGHT0, gl.GL_AMBIENT, makeFloatBuffer(ambientlight));
-		gl.glLightfv(gl.GL_LIGHT0, gl.GL_DIFFUSE, makeFloatBuffer(diffuselight));
-		gl.glLightfv(gl.GL_LIGHT0, gl.GL_SPECULAR, makeFloatBuffer(specularlight));
-		gl.glEnable(gl.GL_LIGHT0);
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, makeFloatBuffer(ambientlight));
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, makeFloatBuffer(diffuselight));
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, makeFloatBuffer(specularlight));
+		gl.glEnable(GL10.GL_LIGHT0);
 		
-		gl.glEnable(GL10.GL_COLOR_MATERIAL);
+		gl.glDisable(GL10.GL_COLOR_MATERIAL);
 		
 	}
 	
@@ -288,6 +296,8 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	 * @param pMode
 	 */
 	public void setMode(int pMode) {
+		if(pMode != this.mode)
+			isTextureInitialized = false;
 		switch(pMode) {		
 		case GL10.GL_RGB:
 		case GL10.GL_LUMINANCE:

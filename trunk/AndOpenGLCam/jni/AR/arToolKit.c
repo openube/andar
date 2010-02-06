@@ -177,6 +177,13 @@ const float normals[] =  {
 			0.0f, -1.0f,  0.0f,
 			0.0f, -1.0f,  0.0f,
 		};
+//Lighting variables
+const static GLfloat   mat_ambient[]     = {0.0, 0.0, 1.0, 1.0};
+const static GLfloat   mat_flash[]       = {0.0, 0.0, 1.0, 1.0};
+const static GLfloat   mat_flash_shiny[] = {50.0};
+const static GLfloat   light_position[]  = {100.0,-200.0,200.0,0.0};
+const static GLfloat   ambi[]            = {0.1, 0.1, 0.1, 0.1};
+const static GLfloat   lightZeroColor[]  = {0.9, 0.9, 0.9, 0.1};
 /*
  * Class:     edu_dhbw_andopenglcam_MarkerInfo
  * Method:    draw
@@ -184,6 +191,7 @@ const float normals[] =  {
  */
 JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_MarkerInfo_draw
   (JNIEnv *env, jobject object) {
+
   if(cur_marker_id != -1) {
     //setup the 3D environment
     glMatrixMode(GL_MODELVIEW);
@@ -196,6 +204,17 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_MarkerInfo_draw
     glDepthFunc(GL_LEQUAL);
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf( gl_para );
+
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);	
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+
     //draw cube
     glColor4f(0, 1.0f, 0, 1.0f);
     glTranslatef( 0.0, 0.0, 12.5 );
@@ -204,7 +223,7 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andopenglcam_MarkerInfo_draw
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisable(GL_TEXTURE_2D);
     glVertexPointer(3, GL_FLOAT, 0, box);
-    //glNormalPointer(GL_FLOAT,0, normals);
+    glNormalPointer(GL_FLOAT,0, normals);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
     glDrawArrays(GL_TRIANGLE_STRIP, 8, 4);
