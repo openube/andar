@@ -10,11 +10,11 @@ int             xsize, ysize;
 int             thresh = 100;
 int             count = 0;
 
-char           *cparam_name    = "/sdcard/camera_para.dat";
+char           *cparam_name    = "/sdcard/andar/camera_para.dat";
 ARParam         cparam;
 
 //pattern-file
-char           *patt_name      = "/sdcard/patt.hiro";
+char           *patt_name      = "/sdcard/andar/patt.hiro";
 int		cur_marker_id = -1;
 int             patt_id;
 double          patt_width     = 80.0;
