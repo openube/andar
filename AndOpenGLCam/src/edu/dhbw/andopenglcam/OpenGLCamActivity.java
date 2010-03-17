@@ -19,7 +19,10 @@
  */
 package edu.dhbw.andopenglcam;
 
+import java.io.File;
 import java.io.IOException;
+
+import edu.dhbw.andopenglcam.util.IO;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
@@ -54,7 +57,8 @@ public class OpenGLCamActivity extends Activity implements Callback{
         disableScreenTurnOff();
         //orientation is set via the manifest
 
-        res = getResources();     
+        res = getResources();  
+        IO.transferFilesToSDCard(res);
         glSurfaceView = new OpenGLCamView(this);
 		renderer = new OpenGLCamRenderer(res, markerInfo);
 		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, markerInfo);
@@ -63,6 +67,8 @@ public class OpenGLCamActivity extends Activity implements Callback{
         glSurfaceView.getHolder().addCallback(this);
         setContentView(glSurfaceView); 	 
     }
+    
+   
     
     public void disableScreenTurnOff() {
     	getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
@@ -113,7 +119,9 @@ public class OpenGLCamActivity extends Activity implements Callback{
     		camera = CameraHolder.instance().open();
 	        Parameters params = camera.getParameters();
 	        params.setPreviewSize(240,160);
-	        //params.setPreviewFrameRate(1);//TODO remove restriction
+	        //params.setPreviewFrameRate(10);//TODO remove restriction
+	        //try to set the preview format
+	        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
 	        camera.setParameters(params);
 	        camera.setPreviewCallback(cameraHandler);
 	        ///camera.setOneShotPreviewCallback(cameraHandler);

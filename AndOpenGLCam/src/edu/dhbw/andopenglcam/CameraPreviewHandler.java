@@ -66,6 +66,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private Object modeLock = new Object();
 	private MarkerInfo markerInfo;
 	private ConversionWorker convWorker;
+	private Camera cam;
 	
 	
 	public CameraPreviewHandler(GLSurfaceView glSurfaceView,
@@ -177,6 +178,9 @@ public class CameraPreviewHandler implements PreviewCallback {
 		//prevent null pointer exceptions
 		if (data == null)
 			return;
+		if(cam==null)
+			cam = camera;
+		camera.setPreviewCallback(null);
 		convWorker.nextFrame(data);
 		markerInfo.detectMarkers(data);
 	}
@@ -267,6 +271,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 				}
 				frameSink.getFrameLock().unlock();
 				glSurfaceView.requestRender();
+				cam.setPreviewCallback(CameraPreviewHandler.this);
 				try {
 					wait();//wait for next frame
 				} catch (InterruptedException e) {}
