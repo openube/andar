@@ -1,4 +1,4 @@
-package edu.union.graphics;
+package edu.dhbw.andobjviewer.util;
 
 public class MatrixUtils {
     
