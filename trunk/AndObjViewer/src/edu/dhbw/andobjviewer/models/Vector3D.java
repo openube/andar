@@ -17,14 +17,16 @@
     along with AndObjViewer.  If not, see <http://www.gnu.org/licenses/>.
  
  */
-package edu.dhbw.andobjviewer;
+package edu.dhbw.andobjviewer.models;
+
+import java.io.Serializable;
 
 /**
  * a three dimensional vector
  * @author Tobias Domhan
  *
  */
-public class Vector3D {
+public class Vector3D implements Serializable {
 	/**
 	 * @param x
 	 * @param y
@@ -36,7 +38,9 @@ public class Vector3D {
 		this.y = y;
 		this.z = z;
 	}
-	private float x=0;
+	public float x=0;
+	public float y=0;
+	public float z=0;
 	/**
 	 * @return the x
 	 */
@@ -73,6 +77,5 @@ public class Vector3D {
 	public void setZ(float z) {
 		this.z = z;
 	}
-	private float y=0;
-	private float z=0;
+
 }

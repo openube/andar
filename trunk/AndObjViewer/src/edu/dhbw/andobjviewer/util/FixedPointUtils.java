@@ -1,4 +1,4 @@
-package edu.union.graphics;
+package edu.dhbw.andobjviewer.util;
 
 // Much of this is adapted from the beartronics FP lib
 public class FixedPointUtils {

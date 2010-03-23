@@ -19,19 +19,22 @@
  */
 package edu.dhbw.andobjviewer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import edu.dhbw.andobjviewer.graphics.Model3D;
-import edu.union.graphics.AbstractModelLoader;
-import edu.union.graphics.FloatMesh;
-import edu.union.graphics.IntMesh;
-import edu.union.graphics.MD2Loader;
-import edu.union.graphics.Model;
-import edu.union.graphics.ObjLoader;
-import edu.union.graphics.SerializedLoader;
+import edu.dhbw.andobjviewer.graphics.Renderer;
+import edu.dhbw.andobjviewer.models.Model;
+import edu.dhbw.andobjviewer.parser.ObjParser;
+import edu.dhbw.andobjviewer.parser.ParseException;
+import edu.dhbw.andobjviewer.util.FileUtil;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -59,7 +62,7 @@ public class ModelViewerActivity extends Activity {
 	private final int TOAST_TIMEOUT = 3;
 	
 	private GLSurfaceView modelView;
-	private ModelRenderer renderer;
+	private Renderer renderer;
 	private Model3D model3D;
 	private Model model;
 	/* Menu Options: */
@@ -70,7 +73,6 @@ public class ModelViewerActivity extends Activity {
 	private int mode = MENU_TRANSLATE;
 
 	
-	private ArrayList<AbstractModelLoader> availableModelLoaders = new ArrayList<AbstractModelLoader>();
 	private Resources res;
 	
 	/* (non-Javadoc)
@@ -88,51 +90,24 @@ public class ModelViewerActivity extends Activity {
 		
 		//create the opengl view
 		modelView = new GLSurfaceView(this);
-
 		
-		//fill list of available model loaders
-        AbstractModelLoader loader = new ObjLoader();
-        loader.setFactory(FloatMesh.factory());
-        availableModelLoaders.add(loader);
-        loader = new MD2Loader();
-        loader.setFactory(FloatMesh.factory());
-        availableModelLoaders.add(loader);
-        SerializedLoader serializedLoader = new SerializedLoader();
-        availableModelLoaders.add(serializedLoader);
-        
-        
-        loader = getModelloaderForFile(modelFile);
-		if (loader == null) {
-			//no loader available
-			Intent resIntent = new Intent();
-			resIntent.putExtra("error_message", res.getText(R.string.unknown_file_type));
-			setResult(MainActivity.RESULT_ERROR, resIntent);
-			//return
-			finish();
-		}
-		//load and view model 
+		
+		Vector<Model3D> models = new Vector<Model3D>();
+		FileUtil fileUtil = new FileUtil();
+		fileUtil.setBaseFolder(modelFile.getParentFile());
+		ObjParser parser = new ObjParser(fileUtil);
 		try {
-			//load Model if it wasn't restored from another session
-			if(model == null) {
-				model = loader.load(modelFile);
-				if(loader != serializedLoader) {
-					//write out serialized for faster loading in the future:
-					serializedLoader.serialize(model, modelFile);
-				}
-			}
-			model3D = new Model3D(model);
-			renderer = new ModelRenderer(model3D);
-			modelView.setRenderer(renderer);
-			modelView.setOnTouchListener(new EventHandler());
+			model = parser.parse("Model", new BufferedReader(
+					new FileReader(modelFile)));
+			models.add(new Model3D(model));
 		} catch (IOException e) {
 			e.printStackTrace();
-			//Toast.makeText(this, e.getMessage(), TOAST_TIMEOUT).show();
-			Intent resIntent = new Intent();
-			resIntent.putExtra("error_message", res.getText(R.string.unknown_file_type));
-			setResult(Activity.RESULT_CANCELED, resIntent);
-			//return
-			finish();
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
+		renderer = new Renderer(models);
+		modelView.setRenderer(renderer);
+		modelView.setOnTouchListener(new TouchEventHandler());
 		setContentView(modelView);		
 	}
 	
@@ -153,21 +128,6 @@ public class ModelViewerActivity extends Activity {
 		super.onPause();
 		modelView.onPause();
 	}
-	
-	/**
-     * Iterate through all known model loaders and return a model loader that
-     *  can handle the file
-     * @param file
-     * @return
-     */
-    private AbstractModelLoader getModelloaderForFile(File file) {
-    	for (AbstractModelLoader loader : availableModelLoaders) {
-			if (loader.canLoad(file)) {
-				return loader;
-			}
-		}
-    	return null;
-    }
     
     
     
@@ -210,7 +170,7 @@ public class ModelViewerActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
     	super.onSaveInstanceState(outState);
     	//save the model
-    	outState.putSerializable("model", model);
+    	//outState.putSerializable("model", model);
     }
     
     /* (non-Javadoc)
@@ -218,7 +178,8 @@ public class ModelViewerActivity extends Activity {
      */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-    	super.onRestoreInstanceState(savedInstanceState);    	
+    	super.onRestoreInstanceState(savedInstanceState);  
+    	//model = (Model) savedInstanceState.getSerializable("model");
     }
     
     /**
@@ -226,7 +187,7 @@ public class ModelViewerActivity extends Activity {
      * @author Tobias Domhan
      *
      */
-    class EventHandler implements OnTouchListener {
+    class TouchEventHandler implements OnTouchListener {
     	
     	private float lastX=0;
     	private float lastY=0;
@@ -253,15 +214,15 @@ public class ModelViewerActivity extends Activity {
 					lastY = event.getY();
 					switch(mode) {
 						case MENU_SCALE:
-							model3D.setScale(dY/100f);
+							model.setScale(dY/100);
 				            break;
 				        case MENU_ROTATE:
-				        	model3D.setXrot(dY);//dY-> Rotation um die X-Achse
-							model3D.setYrot(dX);//dX-> Rotation um die Y-Achse
+				        	model.setXrot(dY);//dY-> Rotation um die X-Achse
+							model.setYrot(dX);//dX-> Rotation um die Y-Achse
 				            break;
 				        case MENU_TRANSLATE:
-				        	model3D.setXpos(dX/-100f);
-							model3D.setYpos(dY/100f);
+				        	model.setXpos(dX/-100f);
+							model.setYpos(dY/100f);
 				        	break;
 					}					
 					break;

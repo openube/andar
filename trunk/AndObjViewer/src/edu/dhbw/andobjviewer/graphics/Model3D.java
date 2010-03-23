@@ -1,5 +1,5 @@
 /**
-	Copyright (C) 2009  Tobias Domhan
+	Copyright (C) 2010  Tobias Domhan
 
     This file is part of AndObjViewer.
 
@@ -20,232 +20,68 @@
 package edu.dhbw.andobjviewer.graphics;
 
 import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
+import java.util.HashMap;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import edu.dhbw.andobjviewer.ModelRenderer;
-import edu.union.graphics.Mesh;
-import edu.union.graphics.Model;
+import edu.dhbw.andobjviewer.models.Group;
+import edu.dhbw.andobjviewer.models.Material;
+import edu.dhbw.andobjviewer.models.Model;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.opengl.GLU;
-import android.opengl.GLUtils;
-import android.util.Log;
 
 /**
- * represents a {@link Model} 3D Model
- * @author Tobias Domhan
+ * represents a 3d model.
+ * @author tobi
  *
  */
-public class Model3D implements Serializable {
+public class Model3D implements Serializable{
+	
 	private Model model;
-	private FloatBuffer vertices;
-    private FloatBuffer normals;
-    private FloatBuffer texCoords;
-    private int textureName;
-    private float xrot = 0;
-    private float yrot = 0;
-    private float zrot = 0;
-    private float xpos = 0;
-    private float ypos = 0;
-    private float zpos = 0;
-    private float scale = 1f;
-
-
-
-	/**
-	 * default constructor
-	 */
+	private final Group[] groups;
+	private final int groupCount; 
+	private HashMap<String, Material> materials;
+	
 	public Model3D(Model model) {
 		this.model = model;
+		groups = model.getGroups().toArray(new Group[model.getGroups().size()]);
+		groupCount = groups.length;
+		materials = model.getMaterials();
 	}
 	
 	public void init(GL10 gl) {
-        Mesh ms = model.getFrame(0).getMesh();
-        int vertCount = ms.getFaceCount()*3;
-        
-        float[] verticesArr = new float[vertCount*3];
-        float[] normalsArr = new float[vertCount*3];
-
-        int vertexPtr = 0;
-        int normalsPtr = 0;
-        for (int f=0;f<ms.getFaceCount();f++) {
-                int[] face = ms.getFace(f);
-                //TODO: faces may have more than 3 vertices.
-                for (int j=0;j<3;j++) {
-                        float[] v = ms.getVertexf(face[j]);
-                        for (int k=0;k<3;k++) {
-                            //vertices.put(v[k]);
-                        	verticesArr[vertexPtr] = v[k];
-                        	vertexPtr++;
-                        }
-                }
-                int[] face_n = ms.getFaceNormals(f);
-                for (int j=0;j<3;j++) {
-                        float[] n = ms.getNormalf(face_n[j]);
-                        for (int k=0;k<3;k++) {
-                                normalsArr[normalsPtr] = n[k];
-                                normalsPtr++;
-                        }
-                }
-
-        }
-        vertices = ModelRenderer.makeFloatBuffer(verticesArr);
-        normals = ModelRenderer.makeFloatBuffer(normalsArr);
+		//transfer vertices to video memory
 	}
 	
-	/**
-	 * load a bitmap as an opengl texture and return the texture name
-	 * @param gl
-	 * @param bmp
-	 * @return
-	 */
-	protected static int loadTexture(GL10 gl, Bitmap bmp) {
-		gl.glEnable(GL10.GL_TEXTURE_2D);
-		int[] tmp_tex = new int[1];
-
-        gl.glGenTextures(1, tmp_tex, 0);
-        int tx = tmp_tex[0];
-        gl.glBindTexture(GL10.GL_TEXTURE_2D, tx);
-		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bmp, 0);        
-        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
-        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
-        return tx;
-	}
-
-	private float rot;
 	public void draw(GL10 gl) {
-        /*GLU.gluLookAt(gl, 0, 0, 5, 0, 0, 0, 0, 1, 0);
-        gl.glTranslatef(0,0,-10);
-        gl.glRotatef(30.0f, 1, 0, 0);*/
+		//do positioning:
+		gl.glScalef(model.scale, model.scale, model.scale);
+		gl.glTranslatef(model.xpos, model.ypos, model.zpos);
+		gl.glRotatef(model.xrot, 1, 0, 0);
+		gl.glRotatef(model.yrot, 0, 1, 0);
+		gl.glRotatef(model.zrot, 0, 0, 1);
+		
+		//tmp
+		gl.glColor4f(0f, 1f, 0f, 1f);
+		//end tmp
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-		//gl.glEnableClientState(GL10.GL_NORMAL_ARRAY);
-
-        gl.glColor4f(0f, 1f, 0f, 1f);        
-        gl.glEnableClientState(GL10.GL_NORMAL_ARRAY);
-        /*gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-        gl.glBindTexture(GL10.GL_TEXTURE_2D, textureName);*/
-        gl.glScalef(scale, scale, scale);
-        gl.glTranslatef(xpos, ypos, zpos);
-        gl.glRotatef(xrot, 1, 0, 0);
-        gl.glRotatef(yrot, 0, 1, 0);
-        gl.glRotatef(zrot, 0, 0, 1);
-        gl.glVertexPointer(3,GL10.GL_FLOAT, 0, vertices);
-        gl.glNormalPointer(GL10.GL_FLOAT,0, normals);
-
-        int faces = model.getFrame(0).getMesh().getFaceCount();
-        gl.glDrawArrays(GL10.GL_TRIANGLES, 0, faces*3);
-        
-        gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
-        gl.glDisableClientState(GL10.GL_NORMAL_ARRAY);
-
-	}
-	
-	//getters and setters:
-
-	/**
-	 * @return the xpos
-	 */
-	public float getXpos() {
-		return xpos;
-	}
-
-	/**
-	 * @param xpos the xpos to set
-	 */
-	public void setXpos(float xpos) {
-		this.xpos += xpos;
-	}
-
-	/**
-	 * @return the ypos
-	 */
-	public float getYpos() {
-		return ypos;
-	}
-
-	/**
-	 * @param ypos the ypos to set
-	 */
-	public void setYpos(float ypos) {
-		this.ypos += ypos;
-	}
-
-	/**
-	 * @return the zpos
-	 */
-	public float getZpos() {
-		return zpos;
-	}
-
-	/**
-	 * @param zpos the zpos to set
-	 */
-	public void setZpos(float zpos) {
-		this.zpos = zpos;
-	}
-
-	/**
-	 * @return the xrot
-	 */
-	public float getXrot() {
-		return xrot;
-	}
-
-	/**
-	 * @param xrot the xrot to set
-	 */
-	public void setXrot(float xrot) {
-		this.xrot += xrot;
-	}
-
-	/**
-	 * @return the yrot
-	 */
-	public float getYrot() {
-		return yrot;
-	}
-
-	/**
-	 * @param yrot the yrot to set
-	 */
-	public void setYrot(float yrot) {
-		this.yrot += yrot;
-	}
-
-	/**
-	 * @return the zrot
-	 */
-	public float getZrot() {
-		return zrot;
-	}
-
-	/**
-	 * @param zrot the zrot to set
-	 */
-	public void setZrot(float zrot) {
-		this.zrot = zrot;
-	}
-	
-	/**
-	 * @return the scale
-	 */
-	public float getScale() {
-		return scale;
-	}
-
-	/**
-	 * @param scale the scale to set
-	 */
-	public void setScale(float scale) {
-		this.scale += scale;
-		if(this.scale < 0.01f) {
-			this.scale = 0.01f;
+		gl.glEnableClientState(GL10.GL_NORMAL_ARRAY);
+		
+		
+		//draw each groups
+		for (int i = 0; i < groupCount; i++) {
+			Group group = groups[i];
+			Material mat = materials.get(group.getMaterial());
+			if(mat != null) {
+				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, mat.specularlight);
+				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, mat.ambientlight);
+				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_DIFFUSE, mat.diffuselight);
+				gl.glMaterialf(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, mat.shininess);
+			}
+			gl.glVertexPointer(3,GL10.GL_FLOAT, 0, group.vertices);
+	        gl.glNormalPointer(GL10.GL_FLOAT,0, group.normals);
+	        gl.glDrawArrays(GL10.GL_TRIANGLES, 0, group.vertexCount);
 		}
+		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+		gl.glDisableClientState(GL10.GL_NORMAL_ARRAY);
 	}
-	
 }

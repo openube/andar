@@ -25,11 +25,6 @@ import java.net.URI;
 import java.util.ArrayList;
 
 import edu.dhbw.andobjviewer.R;
-import edu.union.graphics.AbstractModelLoader;
-import edu.union.graphics.IntMesh;
-import edu.union.graphics.MD2Loader;
-import edu.union.graphics.Model;
-import edu.union.graphics.ObjLoader;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
