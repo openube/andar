@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 public class FileUtil {	
 	
@@ -43,6 +45,15 @@ public class FileUtil {
 			} catch (FileNotFoundException e) {
 				return null;
 			}
+		}
+	}
+	
+	public Bitmap getBitmapFromName(String name) {
+		if (baseFolder != null) {
+			String path = new File(baseFolder,name).getAbsolutePath();
+			return BitmapFactory.decodeFile(path);
+		} else {
+			return BitmapFactory.decodeFile(name);
 		}
 	}
 }

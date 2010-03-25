@@ -21,8 +21,12 @@ package edu.dhbw.andobjviewer.graphics;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
+
+import android.opengl.GLUtils;
 
 import edu.dhbw.andobjviewer.models.Group;
 import edu.dhbw.andobjviewer.models.Material;
@@ -37,18 +41,46 @@ import edu.dhbw.andobjviewer.models.Model;
 public class Model3D implements Serializable{
 	
 	private Model model;
-	private final Group[] groups;
-	private final int groupCount; 
-	private HashMap<String, Material> materials;
+	private Group[] texturedGroups;
+	private Group[] nonTexturedGroups;
+	private HashMap<Material, Integer> textureIDs = new HashMap<Material, Integer>();
 	
 	public Model3D(Model model) {
 		this.model = model;
-		groups = model.getGroups().toArray(new Group[model.getGroups().size()]);
-		groupCount = groups.length;
-		materials = model.getMaterials();
+		//separate texture from non textured groups for performance reasons
+		Vector<Group> groups = model.getGroups();
+		Vector<Group> texturedGroups = new Vector<Group>();
+		Vector<Group> nonTexturedGroups = new Vector<Group>();
+		for (Iterator<Group> iterator = groups.iterator(); iterator.hasNext();) {
+			Group currGroup = iterator.next();
+			if(currGroup.isTextured()) {
+				texturedGroups.add(currGroup);
+			} else {
+				nonTexturedGroups.add(currGroup);
+			}			
+		}
+		this.texturedGroups = texturedGroups.toArray(new Group[texturedGroups.size()]);
+		this.nonTexturedGroups = nonTexturedGroups.toArray(new Group[nonTexturedGroups.size()]);	
 	}
 	
 	public void init(GL10 gl) {
+		int[]  tmpTextureID = new int[1];
+		//load textures of every material(that has a texture):
+		Iterator<Material> materialI = model.getMaterials().values().iterator();
+		while (materialI.hasNext()) {
+			Material material = (Material) materialI.next();
+			if(material.hasTexture()) {
+				//load texture
+				gl.glGenTextures(1, tmpTextureID, 0);
+				gl.glBindTexture(GL10.GL_TEXTURE_2D, tmpTextureID[0]);
+				textureIDs.put(material, tmpTextureID[0]);
+				GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, material.getTexture(),0);
+				material.getTexture().recycle();
+				gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
+				gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR); 
+			}
+		}
+		
 		//transfer vertices to video memory
 	}
 	
@@ -60,17 +92,15 @@ public class Model3D implements Serializable{
 		gl.glRotatef(model.yrot, 0, 1, 0);
 		gl.glRotatef(model.zrot, 0, 0, 1);
 		
-		//tmp
-		gl.glColor4f(0f, 1f, 0f, 1f);
-		//end tmp
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 		gl.glEnableClientState(GL10.GL_NORMAL_ARRAY);
 		
-		
-		//draw each groups
-		for (int i = 0; i < groupCount; i++) {
-			Group group = groups[i];
-			Material mat = materials.get(group.getMaterial());
+		//first draw non textured groups
+		gl.glDisable(GL10.GL_TEXTURE_2D);
+		int cnt = nonTexturedGroups.length;
+		for (int i = 0; i < cnt; i++) {
+			Group group = nonTexturedGroups[i];
+			Material mat = group.getMaterial();
 			if(mat != null) {
 				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, mat.specularlight);
 				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, mat.ambientlight);
@@ -78,10 +108,34 @@ public class Model3D implements Serializable{
 				gl.glMaterialf(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, mat.shininess);
 			}
 			gl.glVertexPointer(3,GL10.GL_FLOAT, 0, group.vertices);
-	        gl.glNormalPointer(GL10.GL_FLOAT,0, group.normals);
+	        gl.glNormalPointer(GL10.GL_FLOAT,0, group.normals);	        
 	        gl.glDrawArrays(GL10.GL_TRIANGLES, 0, group.vertexCount);
 		}
+		
+		//now we can continue with textured ones
+		gl.glEnable(GL10.GL_TEXTURE_2D);
+		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+		
+		cnt = texturedGroups.length;
+		for (int i = 0; i < cnt; i++) {
+			Group group = texturedGroups[i];
+			Material mat = group.getMaterial();
+			if(mat != null) {
+				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, mat.specularlight);
+				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, mat.ambientlight);
+				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_DIFFUSE, mat.diffuselight);
+				gl.glMaterialf(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, mat.shininess);
+				//already checked that the group has a texture..no need to do it here again
+				gl.glTexCoordPointer(2,GL10.GL_FLOAT, 0, group.texcoords);
+				gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs.get(mat).intValue());
+			}
+			gl.glVertexPointer(3,GL10.GL_FLOAT, 0, group.vertices);
+	        gl.glNormalPointer(GL10.GL_FLOAT,0, group.normals);	        
+	        gl.glDrawArrays(GL10.GL_TRIANGLES, 0, group.vertexCount);
+		}
+		
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL10.GL_NORMAL_ARRAY);
+		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 	}
 }

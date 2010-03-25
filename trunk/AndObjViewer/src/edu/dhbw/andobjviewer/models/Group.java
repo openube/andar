@@ -34,30 +34,51 @@ import edu.dhbw.andobjviewer.util.MemUtil;
  */
 public class Group implements Serializable {
 	private String materialName = "default";
+	private Material material;
 	/**
 	 * is there a texture associated with this group?
 	 */
 	private boolean textured = false;
 	//access not via getters for performance reasons
-	public  FloatBuffer vertices;
-	public  FloatBuffer texcoords;
-	public  FloatBuffer normals;
+	public  FloatBuffer vertices = null;
+	public  FloatBuffer texcoords = null;
+	public  FloatBuffer normals = null;
 	public int vertexCount = 0;
 	
 	public Vector<Float> groupVertices = new Vector<Float>();
 	public Vector<Float> groupNormals = new Vector<Float>();
 	public Vector<Float> groupTexcoords = new Vector<Float>();
 	
-	public void setMaterial(String currMat) {
+	public void setMaterialName(String currMat) {
 		this.materialName = currMat;
 	}
 	
-	public String getMaterial() {
+	public String getMaterialName() {
 		return materialName;
 	}
 	
+	
+	public Material getMaterial() {
+		return material;
+	}
+
+	public void setMaterial(Material material) {
+		if(texcoords != null && material.hasTexture()) {
+			textured = true;
+		}
+		this.material = material;
+	}
+
 	public boolean containsVertices() {
 		return groupVertices.size()>0;
+	}
+	
+	public void setTextured(boolean b) {
+		textured = b;
+	}
+	
+	public boolean isTextured() {
+		return textured;
 	}
 	
 	/**
@@ -73,6 +94,9 @@ public class Group implements Serializable {
 				texcoords.put(curVal.floatValue());
 			}
 			texcoords.position(0);
+			if(material != null && material.hasTexture()) {
+				textured = true;
+			}
 		}
 		groupTexcoords = null;
 		vertices = MemUtil.makeFloatBuffer(groupVertices.size());

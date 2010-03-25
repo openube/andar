@@ -21,6 +21,7 @@ package edu.dhbw.andobjviewer.parser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Vector;
 import edu.dhbw.andobjviewer.models.Group;
 import edu.dhbw.andobjviewer.models.Model;
@@ -35,6 +36,7 @@ import edu.dhbw.andobjviewer.util.FileUtil;
  *  - texture coordinates
  *  - basic materials
  *  - faces(faces may not omit the face normal)
+ *  - limited texture support, through the map_Kd statement (no options allowed, only image files allowed)
  * @author tobi
  *
  */
@@ -65,7 +67,7 @@ public class ObjParser {
 		
 		Model model = new Model();
 		Group curGroup = new Group();
-		MtlParser mtlParser = new MtlParser(model);
+		MtlParser mtlParser = new MtlParser(model,fileUtil);
 		
 		String line;
 		int lineNum = 1;
@@ -200,7 +202,7 @@ public class ObjParser {
 						curGroup = new Group();
 					}
 					//the rest of the line contains the name of the new material
-					curGroup.setMaterial(line.substring(7));
+					curGroup.setMaterialName(line.substring(7));
 				} else if(line.startsWith("g ")) {
 					//new group definition
 					if(curGroup.groupVertices.size()>0) {
@@ -214,7 +216,11 @@ public class ObjParser {
 		if(curGroup.groupVertices.size()>0) {
 			model.addGroup(curGroup);
 		}
-	
+		Iterator<Group> groupIt = model.getGroups().iterator();
+		while (groupIt.hasNext()) {
+			Group group = (Group) groupIt.next();
+			group.setMaterial(model.getMaterial(group.getMaterialName()));
+		}
 		return model;
 	}
 }
