@@ -49,6 +49,10 @@ public class Model implements Serializable{
 		materials.put(mat.getName(), mat);
 	}
 	
+	public Material getMaterial(String name) {
+		return materials.get(name);
+	}
+	
 	public void addGroup(Group grp) {
 		grp.finalize();
 		groups.add(grp);
@@ -57,6 +61,8 @@ public class Model implements Serializable{
 	public Vector<Group> getGroups() {
 		return groups;
 	}
+	
+	
 	
 	public HashMap<String, Material> getMaterials() {
 		return materials;

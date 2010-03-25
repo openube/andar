@@ -22,6 +22,8 @@ package edu.dhbw.andobjviewer.models;
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 
+import android.graphics.Bitmap;
+
 import edu.dhbw.andobjviewer.util.MemUtil;
 
 public class Material implements Serializable {
@@ -36,7 +38,7 @@ public class Material implements Serializable {
 	public FloatBuffer specularlight = MemUtil.makeFloatBuffer(4);
 	public float shininess = 0;
 	
-	private boolean hasTexture = false;
+	private Bitmap texture = null;
 	
 	private String name;
 	
@@ -85,6 +87,18 @@ public class Material implements Serializable {
 		specularlight.put(3, alpha);
 	}
 	
+	public Bitmap getTexture() {
+		return texture;
+	}
+
+	public void setTexture(Bitmap texture) {
+		this.texture = texture;
+	}
+	
+	public boolean hasTexture() {
+		return this.texture != null;
+	}
+
 	/**
 	 * copies a light describtion from a float array
 	 * to a float buffer.

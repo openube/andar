@@ -55,7 +55,7 @@ import android.widget.Toast;
  * @author Tobias Domhan
  *
  */
-public class ModelViewerActivity extends Activity {
+public class ModelViewerActivity extends Activity{
 	/**
 	 * Constants:
 	 */
@@ -65,6 +65,9 @@ public class ModelViewerActivity extends Activity {
 	private Renderer renderer;
 	private Model3D model3D;
 	private Model model;
+	
+	public static final boolean DEBUG = true;
+	
 	/* Menu Options: */
 	private final int MENU_SCALE = 0;
 	private final int MENU_ROTATE = 1;

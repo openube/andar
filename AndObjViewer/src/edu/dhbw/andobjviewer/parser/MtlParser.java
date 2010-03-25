@@ -25,15 +25,19 @@ import java.util.regex.Pattern;
 
 import edu.dhbw.andobjviewer.models.Material;
 import edu.dhbw.andobjviewer.models.Model;
+import edu.dhbw.andobjviewer.util.FileUtil;
 
 
 import android.R;
+import android.graphics.BitmapFactory;
 
 
 public class MtlParser {
 
+	private FileUtil fileUtil;
 	
-	public MtlParser(Model model) {
+	public MtlParser(Model model, FileUtil fileUtil) {
+		this.fileUtil = fileUtil;
 	}
 
 	/**
@@ -84,6 +88,11 @@ public class MtlParser {
 						// specular color
 						String endOfLine = line.substring(3);
 						curMat.setAlpha(Float.parseFloat(endOfLine));
+					} else if(line.startsWith(" map_Kd ")) {
+						//limited texture support
+						String imageFileName = line.substring(8);
+						//für resources:Bitmap mBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.pic1);
+						curMat.setTexture(fileUtil.getBitmapFromName(imageFileName));
 					}
 				}
 			}
