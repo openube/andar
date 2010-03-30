@@ -174,16 +174,17 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 * @see android.hardware.Camera.PreviewCallback#onPreviewFrame(byte[], android.hardware.Camera)
 	 */
 	@Override
-	public void onPreviewFrame(byte[] data, Camera camera) {
-		//prevent null pointer exceptions
-		if (data == null)
-			return;
-		if(cam==null)
-			cam = camera;
-		camera.setPreviewCallback(null);
-		convWorker.nextFrame(data);
-		markerInfo.detectMarkers(data);
+	public synchronized void onPreviewFrame(byte[] data, Camera camera) {
+			//prevent null pointer exceptions
+			if (data == null)
+				return;
+			if(cam==null)
+				cam = camera;
+			//camera.setPreviewCallback(null);
+			convWorker.nextFrame(data);
+			markerInfo.detectMarkers(data);
 	}
+	
 	
 	protected void setMode(int pMode) {
 		synchronized (modeLock) {
@@ -271,7 +272,11 @@ public class CameraPreviewHandler implements PreviewCallback {
 				}
 				frameSink.getFrameLock().unlock();
 				glSurfaceView.requestRender();
-				cam.setPreviewCallback(CameraPreviewHandler.this);
+				if(Config.USE_ONE_SHOT_PREVIEW) {
+					synchronized (CameraPreviewHandler.this) {
+						cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
+					}
+		        }				
 				try {
 					wait();//wait for next frame
 				} catch (InterruptedException e) {}

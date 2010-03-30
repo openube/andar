@@ -31,6 +31,7 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -117,14 +118,26 @@ public class OpenGLCamActivity extends Activity implements Callback{
     	if (camera == null) {
 	    	//camera = Camera.open();
     		camera = CameraHolder.instance().open();
+    		
 	        Parameters params = camera.getParameters();
 	        params.setPreviewSize(240,160);
 	        //params.setPreviewFrameRate(10);//TODO remove restriction
 	        //try to set the preview format
 	        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
 	        camera.setParameters(params);
-	        camera.setPreviewCallback(cameraHandler);
-	        ///camera.setOneShotPreviewCallback(cameraHandler);
+	        if (Integer.parseInt(Build.VERSION.SDK) <= 4) {
+	        	//for android 1.5 compatibilty reasons:
+				 /*try {
+				    camera.setPreviewDisplay(glSurfaceView.getHolder());
+				 } catch (IOException e1) {
+				        e1.printStackTrace();
+				 }*/
+	        }
+	        if(!Config.USE_ONE_SHOT_PREVIEW) {
+	        	camera.setPreviewCallback(cameraHandler);	 
+	        } else {
+	        	camera.setOneShotPreviewCallback(cameraHandler);
+	        }
 	        try {
 				cameraHandler.init(camera);
 			} catch (Exception e) {
@@ -146,7 +159,7 @@ public class OpenGLCamActivity extends Activity implements Callback{
     	if(mPausing) return;
     	if (mPreviewing) stopPreview();
     	openCamera();
-    	camera.startPreview();
+		camera.startPreview();
     	mPreviewing = true;
     }
     
