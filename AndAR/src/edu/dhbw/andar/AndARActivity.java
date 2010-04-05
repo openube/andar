@@ -19,9 +19,6 @@
  */
 package edu.dhbw.andar;
 
-import java.io.File;
-import java.io.IOException;
-
 import edu.dhbw.andar.util.IO;
 import edu.dhbw.andopenglcam.R;
 
@@ -42,7 +39,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 
-public class OpenGLCamActivity extends Activity implements Callback{
+public abstract class AndARActivity extends Activity implements Callback{
 	private GLSurfaceView glSurfaceView;
 	private Camera camera;
 	private OpenGLCamRenderer renderer;
