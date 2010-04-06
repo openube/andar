@@ -9,11 +9,35 @@ extern "C" {
 #endif
 /*
  * Class:     edu_dhbw_andar_ARToolkit
- * Method:    artoolkit_init
- * Signature: (IIII)V
+ * Method:    addObject
+ * Signature: (ILjava/lang/String;D[D)V
  */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init
-  (JNIEnv *, jobject, jint, jint, jint, jint);
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
+  (JNIEnv *, jobject, jint, jstring, jdouble, jdoubleArray);
+
+/*
+ * Class:     edu_dhbw_andar_ARToolkit
+ * Method:    removeObject
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_removeObject
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     edu_dhbw_andar_ARToolkit
+ * Method:    artoolkit_init
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_dhbw_andar_ARToolkit
+ * Method:    artoolkit_init
+ * Signature: (Ljava/lang/String;IIII)V
+ */
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__Ljava_lang_String_2IIII
+  (JNIEnv *, jobject, jstring, jint, jint, jint, jint);
 
 /*
  * Class:     edu_dhbw_andar_ARToolkit

@@ -36,7 +36,6 @@ int             xsize, ysize;
 int             thresh = 100;
 int             count = 0;
 
-char           *cparam_name    = "/sdcard/andar/camera_para.dat";
 ARParam         cparam;
 
 //pattern-file
@@ -50,16 +49,26 @@ double          patt_trans[3][4];
 extern float   gl_cpara[16];
 float gl_para[16];
 
-
+/*
+ * Class:     edu_dhbw_andar_ARToolkit
+ * Method:    artoolkit_init
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__
+  (JNIEnv * env, jobject object) {
+  
+  }
 
 /*
- * Class:     edu_dhbw_andar_MarkerInfo
+ * Class:     edu_dhbw_andar_ARToolkit
  * Method:    artoolkit_init
- * Signature: (IIII)V
+ * Signature: (Ljava/lang/String;IIII)V
  */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init
-  (JNIEnv *env, jobject object, jint imageWidth, jint imageHeight, jint screenWidth, jint screenHeight) {
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__Ljava_lang_String_2IIII
+  (JNIEnv *env, jobject object, jstring calibFile, jint imageWidth, jint imageHeight, jint screenWidth, jint screenHeight) {
     ARParam  wparam;
+	const char *cparam_name = (*env)->GetStringUTFChars( env, calibFile, NULL ); 
+
 	
     xsize = imageHeight;
     ysize = imageHeight;
@@ -68,8 +77,10 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init
     /* set the initial camera parameters */
     if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
 	__android_log_write(ANDROID_LOG_ERROR,"AR","Camera parameter load error !!");
-        printf("Camera parameter load error !!\n");
-        exit(EXIT_FAILURE);
+	    jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARException" );  
+		if ( exc != NULL ) 
+			(*env)->ThrowNew( env, exc, "Camera parameter load error !!" ); 
+        //exit(EXIT_FAILURE);
     }
 #ifdef DEBUG_LOGGING
     else {
@@ -83,8 +94,9 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init
 
     if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
 	__android_log_write(ANDROID_LOG_ERROR,"AR","pattern load error !!");
-        printf("pattern load error !!\n");
-        exit(EXIT_FAILURE);
+        	    jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARException" );  
+		if ( exc != NULL ) 
+			(*env)->ThrowNew( env, exc, "pattern load error !!" ); 
     } 
 #ifdef DEBUG_LOGGING
     else {
@@ -93,6 +105,8 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init
 #endif
     //initialize openGL stuff
     argInit( &cparam, 1.0, 0, screenWidth, screenHeight, 0 );
+	
+	(*env)->ReleaseStringUTFChars( env, calibFile, cparam_name);
 }
 
 /*

@@ -18,6 +18,8 @@ Steps needed to compile the native sources:
 The AR folder contains anything ARToolkit specific, whereas the image_processing folder contains everything concerning color space conversion.
 The glue between Java an C is provided by the file AR/arToolkit.c.(regarding the ARToolkit)   
 
+The file arGl.c had to be modified, as opengl on android only supports float matrices.
+
 Regards
 Tobi   
    
