@@ -1,5 +1,5 @@
 /**
-	Copyright (C) 2009  Tobias Domhan
+	Copyright (C) 2009,2010  Tobias Domhan
 
     This file is part of AndOpenGLCam.
 
@@ -61,13 +61,12 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Thread.currentThread().setUncaughtExceptionHandler(this);
+        res = getResources();
         
-        artoolkit = new ARToolkit(getFilesDir().getAbsolutePath());
+        artoolkit = new ARToolkit(res, getFilesDir());
         setFullscreen();
         disableScreenTurnOff();
         //orientation is set via the manifest
-
-        res = getResources();
         
         try {
 			IO.transferFilesToPrivateFS(getFilesDir(),res);

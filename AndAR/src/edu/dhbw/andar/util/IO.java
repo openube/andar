@@ -23,7 +23,6 @@ public class IO {
 	 * required, as you can not access the files of the apk package directly
 	 */
 	public static void transferFilesToPrivateFS(File base, Resources res) throws IOException {
-		//TODO throw exceptions
 		AssetManager am = res.getAssets();
 		if (!base.exists()) {
 			base.mkdir();
@@ -35,6 +34,28 @@ public class IO {
 			}
 		}
 	}
+	/**
+	 * 
+	 * @param base
+	 * @param assetFileName filename of the file in the assets folder
+	 * @param res
+	 * @throws IOException
+	 */
+	public static void transferFileToPrivateFS(File base, String assetFileName,Resources res) throws IOException {
+		AssetManager am = res.getAssets();
+		if (!base.exists()) {
+			base.mkdir();
+		}
+		if (base.exists()) {
+			File file = new File(base, assetFileName);
+			if (!file.exists()) {
+				copy(am.open(assetFileName), new FileOutputStream(file));
+			}
+		}
+	}
+	
+	
+	
 	static void copy( InputStream in, OutputStream out ) throws IOException 
 	  { 
 	    byte[] buffer = new byte[ 0xFFFF ]; 
