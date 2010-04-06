@@ -37,14 +37,41 @@ public abstract class ARObject {
 	private double[] center;
 	private int id;
 	
+	/**
+	 * Create a new AR object.
+	 * @param name the name of the the object, an arbitrary string
+	 * @param patternName the file name of the pattern(the file must reside in the res/raw folder)
+	 * @param markerWidth
+	 * @param markerCenter
+	 */
 	public ARObject(String name, String patternName, double markerWidth, double[] markerCenter) {
 		this.name = name;
 		this.patternName = patternName;
 		this.markerWidth = markerWidth;
-		this.center = markerCenter;
+		if(markerCenter.length == 2) {
+			this.center = markerCenter;
+		} else {
+			this.center = new double[]{0,0};
+		}
 	}
 	
 	
+	
+	
+	public int getId() {
+		return id;
+	}
+
+
+
+
+	protected void setId(int id) {
+		this.id = id;
+	}
+
+
+
+
 	/**
 	 * 
 	 * @return Is this object visible? -> is the marker belonging to this object visible?

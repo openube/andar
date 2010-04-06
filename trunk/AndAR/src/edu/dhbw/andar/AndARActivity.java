@@ -19,11 +19,16 @@
  */
 package edu.dhbw.andar;
 
+import java.io.IOException;
+import java.lang.Thread.UncaughtExceptionHandler;
+
+import edu.dhbw.andar.exceptions.AndARException;
 import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andar.util.IO;
 import edu.dhbw.andopenglcam.R;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
@@ -40,7 +45,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 
-public class AndARActivity extends Activity implements Callback{
+public abstract class AndARActivity extends Activity implements Callback, UncaughtExceptionHandler{
 	private GLSurfaceView glSurfaceView;
 	private Camera camera;
 	private AndARRenderer renderer;
@@ -49,29 +54,29 @@ public class AndARActivity extends Activity implements Callback{
 	private boolean mPreviewing = false;
 	private boolean mPausing = false;
 	private ARToolkit artoolkit;
-	private OpenGLRenderer customRenderer;
-	
-	public AndARActivity() {
-		artoolkit = new ARToolkit(10);
-	}
-	
-	public AndARActivity(int maxCapacity) {
-		artoolkit = new ARToolkit(maxCapacity);
-	}
-	
+
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Thread.currentThread().setUncaughtExceptionHandler(this);
+        
+        artoolkit = new ARToolkit(getFilesDir().getAbsolutePath());
         setFullscreen();
         disableScreenTurnOff();
         //orientation is set via the manifest
 
-        res = getResources();  
-        IO.transferFilesToSDCard(res);
+        res = getResources();
+        
+        try {
+			IO.transferFilesToPrivateFS(getFilesDir(),res);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new AndARException(e.getMessage());
+		}
         glSurfaceView = new OpenGLCamView(this);
-		renderer = new AndARRenderer(res, artoolkit, customRenderer);
+		renderer = new AndARRenderer(res, artoolkit, this);
 		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, artoolkit);
         glSurfaceView.setRenderer(renderer);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -87,7 +92,7 @@ public class AndARActivity extends Activity implements Callback{
      * @param customRenderer
      */
     public void setNonARRenderer(OpenGLRenderer customRenderer) {
-		this.customRenderer = customRenderer;
+		renderer.setNonARRenderer(customRenderer);
 	}
 
 	public void disableScreenTurnOff() {
