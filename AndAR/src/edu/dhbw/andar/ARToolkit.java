@@ -4,10 +4,18 @@
 package edu.dhbw.andar;
 
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
 import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import edu.dhbw.andar.exceptions.AndARException;
+
+import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.util.Log;
 
 /**
@@ -16,6 +24,7 @@ import android.util.Log;
  *
  */
 public class ARToolkit {
+	private final String calibFileName = "camera_para.dat";
 	private int markerNum = -1;
 	//private double[] glTransMat = new double[16];
 	private boolean initialized = false;
@@ -35,13 +44,16 @@ public class ARToolkit {
 	private Object transMatMonitor = new Object();
 	private DetectMarkerWorker detectMarkerWorker = new DetectMarkerWorker();
 	private Vector<ARObject> arobjects = new Vector<ARObject>();
-	
 	/**
-	 * 
-	 * @param capacity The max number of objects
+	 * absolute path of the local files:
+	 * the calib file will be stored there, among other things
 	 */
-	public ARToolkit(int maxCapacity) {
-		
+	private String baseFolder;
+	
+	
+	public ARToolkit(String baseFile) {
+		artoolkit_init();
+		this.baseFolder = baseFile;
 	}
 	
 	/**
@@ -53,16 +65,19 @@ public class ARToolkit {
 	 * @param arobject The object that shell be registered.
 	 */
 	public synchronized void registerARObject(ARObject arobject) {
-		//TODO implement
 		arobjects.add(arobject);
+		arobject.setId(nextObjectID);
 		
 		nextObjectID++;
 	}
 	
+	
 	public synchronized void unregisterARObject(ARObject arobject) {
-		//TODO implement
-		
-		
+		if(arobjects.contains(arobject)) {
+			arobjects.remove(arobject);
+			//remove from the native library
+			removeObject(arobject.getId());
+		}
 	}
 	
 	/**
@@ -74,13 +89,33 @@ public class ARToolkit {
 	}
 	
 	/**
-	 * initialize the artoolkit
+	 * Register a object to the native library.
+	 * @param id a unique ID of the object
+	 * @param patternName the fileName of the pattern
+	 * @param markerWidth the width of the object
+	 * @param markerCenter the center of the object
+	 */
+	private native void addObject(int id, String patternName, double markerWidth, double[] markerCenter);
+	
+	/**
+	 * Remove the object from the list of registered objects.
+	 * @param id
+	 */
+	private native void removeObject(int id);
+	
+	/**
+	 * Do some basic initialization, like creating data structures.
+	 */
+	private native void artoolkit_init();
+	
+	/**
+	 * Do initialization specific to the image/screen dimensions.
 	 * @param imageWidth width of the image data
 	 * @param imageHeight height of the image data
 	 * @param screenWidth width of the screen
 	 * @param screenHeight height of the screen
 	 */
-	private native void artoolkit_init(int imageWidth, int imageHeight,
+	private native void artoolkit_init(String filesFolder,int imageWidth, int imageHeight,
 			int screenWidth, int screenHeight);
 	
 	/**
@@ -124,7 +159,7 @@ public class ARToolkit {
 		if(screenWidth>0 && screenHeight>0&&imageWidth>0&&imageHeight>0) {
 			if(Config.DEBUG)
 				Log.i("MarkerInfo", "going to initialize the native library now");
-			artoolkit_init(imageWidth, imageHeight, screenWidth, screenHeight);
+			artoolkit_init(baseFolder+"a"+File.separator+calibFileName, imageWidth, imageHeight, screenWidth, screenHeight);	
 			if(Config.DEBUG)
 				Log.i("MarkerInfo", "alright, done initializing the native library");
 			initialized = true;
@@ -197,5 +232,7 @@ public class ARToolkit {
 			}
 		}
 	}
+	
+	
 
 }

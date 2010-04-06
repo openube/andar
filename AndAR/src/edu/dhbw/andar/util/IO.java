@@ -9,6 +9,8 @@ import java.io.OutputStream;
 
 import edu.dhbw.andopenglcam.R;
 
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.text.GetChars;
@@ -16,43 +18,20 @@ import android.text.GetChars;
 public class IO {
 	
 	/**
-	 * transfers required files to the sc card to be access from C Code
+	 * transfers required files to the the private file system part
+	 * in order to be access them from C Code.
+	 * required, as you can not access the files of the apk package directly
 	 */
-	public static void transferFilesToSDCard(Resources res) {
-		File andarFolder = new File("/sdcard/andar");
-		if (!andarFolder.exists()) {
-			andarFolder.mkdir();
+	public static void transferFilesToPrivateFS(File base, Resources res) throws IOException {
+		//TODO throw exceptions
+		AssetManager am = res.getAssets();
+		if (!base.exists()) {
+			base.mkdir();
 		}
-		if (andarFolder.exists()) {
-			File patternFile = new File("/sdcard/andar/patt.hiro");
-			if (!patternFile.exists()) {
-				try {
-					copy(res.openRawResource(R.raw.patt), new FileOutputStream(patternFile));
-				} catch (NotFoundException e) {
-					//TODO notify user
-					e.printStackTrace();
-				} catch (FileNotFoundException e) {
-					//TODO notify user
-					e.printStackTrace();
-				} catch (IOException e) {
-					//TODO notify user
-					e.printStackTrace();
-				}
-			}
-			File cameraFile = new File("/sdcard/andar/camera_para.dat");
+		if (base.exists()) {
+			File cameraFile = new File(base, "camera_para.dat");
 			if (!cameraFile.exists()) {
-				try {
-					copy(res.openRawResource(R.raw.camera_para), new FileOutputStream(cameraFile));
-				} catch (NotFoundException e) {
-					//TODO notify user
-					e.printStackTrace();
-				} catch (FileNotFoundException e) {
-					//TODO notify user
-					e.printStackTrace();
-				} catch (IOException e) {
-					//TODO notify user
-					e.printStackTrace();
-				}
+				copy(am.open("camera_para.dat"), new FileOutputStream(cameraFile));
 			}
 		}
 	}
