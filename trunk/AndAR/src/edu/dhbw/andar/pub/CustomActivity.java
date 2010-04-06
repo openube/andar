@@ -1,22 +1,9 @@
-/*
- * Copyright (C) 2010 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package edu.dhbw.andar.pub;
 
 import android.os.Bundle;
+import edu.dhbw.andar.ARToolkit;
 import edu.dhbw.andar.AndARActivity;
+import edu.dhbw.andar.interfaces.OpenGLRenderer;
 
 /**
  * Example of an application that makes use of the AndAR toolkit.
@@ -24,6 +11,22 @@ import edu.dhbw.andar.AndARActivity;
  *
  */
 public class CustomActivity extends AndARActivity {
+	/**
+	 * 
+	 */
+	public CustomActivity() {
+		//create a new toolkit object, providing the desired maximun capacity.
+		super(25);
+		//alternative:
+		//super();
+		CustomRenderer renderer = new CustomRenderer();//optional, may be set to null
+		super.setNonARRenderer(renderer);//or might be omited
+		ARToolkit artoolkit = super.getArtoolkit();
+		CustomObject someObject = new CustomObject
+			("test", "patt.hiro", 80.0, new double[]{0,0});
+		artoolkit.registerARObject(someObject);
+	}
+
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {

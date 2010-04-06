@@ -65,13 +65,13 @@ public class CameraPreviewHandler implements PreviewCallback {
 	public final static int MODE_CONTOUR=4;
 	private int mode = MODE_GRAY;
 	private Object modeLock = new Object();
-	private MarkerInfo markerInfo;
+	private ARToolkit markerInfo;
 	private ConversionWorker convWorker;
 	private Camera cam;
 	
 	
 	public CameraPreviewHandler(GLSurfaceView glSurfaceView,
-			PreviewFrameSink sink, Resources res, MarkerInfo markerInfo) {
+			PreviewFrameSink sink, Resources res, ARToolkit markerInfo) {
 		this.glSurfaceView = glSurfaceView;
 		this.frameSink = sink;
 		this.res = res;
@@ -284,7 +284,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 			}
 		}
 		
-		synchronized void nextFrame(byte[] frame) {
+		synchronized final void nextFrame(byte[] frame) {
 			if(this.getState() == Thread.State.WAITING) {
 				//ok, we are ready for a new frame:
 				curFrame = frame;

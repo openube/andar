@@ -4,20 +4,18 @@
 package edu.dhbw.andar;
 
 
-import java.nio.ByteBuffer;
+import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
-
-import edu.dhbw.andar.interfaces.PreviewFrameSink;
 
 import android.util.Log;
 
 /**
- * stores all information about the markers
+ * Interface to the ARToolkit.
  * @author Tobias Domhan
  *
  */
-public class MarkerInfo {
+public class ARToolkit {
 	private int markerNum = -1;
 	//private double[] glTransMat = new double[16];
 	private boolean initialized = false;
@@ -26,11 +24,46 @@ public class MarkerInfo {
 	private int imageWidth = 0;
 	private int imageHeight = 0;
 	/**
+	 * Every object get'S his own unique ID. 
+	 * This counter may never be decremented.
+	 */
+	private int nextObjectID = 0;
+	/**
 	 * The transformation matrix is accessed, when drawing the object(read),
 	 * but is also written to when detecting the markers from a different thread.
 	 */
 	private Object transMatMonitor = new Object();
 	private DetectMarkerWorker detectMarkerWorker = new DetectMarkerWorker();
+	private Vector<ARObject> arobjects = new Vector<ARObject>();
+	
+	/**
+	 * 
+	 * @param capacity The max number of objects
+	 */
+	public ARToolkit(int maxCapacity) {
+		
+	}
+	
+	/**
+	 * Registers an object to the ARToolkit. This means:
+	 * The toolkit will try to determine the pose of the object.
+	 * If it is visible the draw method of the object will be invoked.
+	 * The corresponding translation matrix will be applied inside opengl
+	 * before doing so.
+	 * @param arobject The object that shell be registered.
+	 */
+	public synchronized void registerARObject(ARObject arobject) {
+		//TODO implement
+		arobjects.add(arobject);
+		
+		nextObjectID++;
+	}
+	
+	public synchronized void unregisterARObject(ARObject arobject) {
+		//TODO implement
+		
+		
+	}
 	
 	/**
 	 * native libraries
@@ -53,7 +86,7 @@ public class MarkerInfo {
 	/**
 	 * detect the markers in the frame
 	 * @param in the image 
-	 * @param matrix the transformation matrix for each marker
+	 * @param matrix the transformation matrix for each marker, will be locked right before the trans matrix will be altered
 	 * @return number of markers
 	 */
 	private native int artoolkit_detectmarkers(byte[] in, Object transMatMonitor);
@@ -66,7 +99,8 @@ public class MarkerInfo {
 	 * @param height of the screen
 	 */
 	public void setScreenSize(int width, int height) {
-		Log.i("MarkerInfo", "setting screen width("+width+") and height("+height+")");
+		if(Config.DEBUG)
+			Log.i("MarkerInfo", "setting screen width("+width+") and height("+height+")");
 		this.screenWidth = width;
 		this.screenHeight = height;
 		initialize();
@@ -78,7 +112,8 @@ public class MarkerInfo {
 	 * @param height of the image
 	 */
 	public void setImageSize(int width, int height) {
-		Log.i("MarkerInfo", "setting image width("+width+") and height("+height+")");
+		if(Config.DEBUG)
+			Log.i("MarkerInfo", "setting image width("+width+") and height("+height+")");
 		this.imageWidth = width;
 		this.imageHeight = height;
 		initialize();
@@ -87,9 +122,11 @@ public class MarkerInfo {
 	private void initialize() {
 		//make sure all sizes are set
 		if(screenWidth>0 && screenHeight>0&&imageWidth>0&&imageHeight>0) {
-			Log.i("MarkerInfo", "going to initialize the native library now");
+			if(Config.DEBUG)
+				Log.i("MarkerInfo", "going to initialize the native library now");
 			artoolkit_init(imageWidth, imageHeight, screenWidth, screenHeight);
-			Log.i("MarkerInfo", "alright, done initializing the native library");
+			if(Config.DEBUG)
+				Log.i("MarkerInfo", "alright, done initializing the native library");
 			initialized = true;
 		}
 	}
@@ -99,16 +136,21 @@ public class MarkerInfo {
 	 * MarkerInfo accordingly.
 	 * @param image
 	 */
-	public void detectMarkers(byte[] image) {
+	public final void detectMarkers(byte[] image) {
 		//make sure we initialized the native library
 		if(initialized) {			
 			detectMarkerWorker.nextFrame(image);
 		}
 	}
 	
+	/**
+	 * Draw all ARObjects.
+	 * @param gl
+	 */
 	public void draw(GL10 gl) {
 		if(initialized) {
-			Log.i("MarkerInfo", "going to draw opengl stuff now");
+			if(Config.DEBUG)
+				Log.i("MarkerInfo", "going to draw opengl stuff now");
 			synchronized (transMatMonitor) {
 				draw();
 			}
@@ -144,7 +186,7 @@ public class MarkerInfo {
 			}
 		}
 		
-		synchronized void nextFrame(byte[] frame) {
+		synchronized final void nextFrame(byte[] frame) {
 			if(this.getState() == Thread.State.WAITING) {
 				//ok, we are ready for a new frame:
 				curFrame = frame;

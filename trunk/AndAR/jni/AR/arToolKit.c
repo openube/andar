@@ -1,3 +1,29 @@
+ /**
+	Copyright (C) 2009  Tobias Domhan
+
+    This file is part of AndOpenGLCam.
+
+    AndObjViewer is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AndObjViewer is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AndObjViewer.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ */
+/*
+ * arToolKit.c
+ * author: Tobias Domhan
+ * license: GPL
+ * This is the glue between the Java and the C part.
+ */
+
 #include <GLES/gl.h>
 #include <stdio.h>
 #include <AR/ar.h>
@@ -31,7 +57,7 @@ float gl_para[16];
  * Method:    artoolkit_init
  * Signature: (IIII)V
  */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_MarkerInfo_artoolkit_1init
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init
   (JNIEnv *env, jobject object, jint imageWidth, jint imageHeight, jint screenWidth, jint screenHeight) {
     ARParam  wparam;
 	
@@ -74,7 +100,7 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_MarkerInfo_artoolkit_1init
  * Method:    artoolkit_detectmarkers
  * Signature: ([B[D)I
  */
-JNIEXPORT jint JNICALL Java_edu_dhbw_andar_MarkerInfo_artoolkit_1detectmarkers
+JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
   (JNIEnv *env, jobject object, jbyteArray image, jobject transMatMonitor) {
     ARUint8         *dataPtr;
     ARMarkerInfo    *marker_info;
@@ -194,7 +220,7 @@ const static GLfloat   lightZeroColor[]  = {0.9, 0.9, 0.9, 0.1};
  * Method:    draw
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_MarkerInfo_draw
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_draw
   (JNIEnv *env, jobject object) {
 
   if(cur_marker_id != -1) {

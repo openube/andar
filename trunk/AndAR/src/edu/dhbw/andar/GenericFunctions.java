@@ -30,7 +30,7 @@ public class GenericFunctions {
 	 * @param value
 	 * @return
 	 */
-	static boolean isPowerOfTwo (int value)	{
+	static final boolean isPowerOfTwo (int value)	{
 		if(value != 0) {
 			return (value & -value) == value;
 		} else {
@@ -44,7 +44,7 @@ public class GenericFunctions {
 	 * @param x
 	 * @return
 	 */
-	static public int nextPowerOfTwo(int x) {
+	static final public int nextPowerOfTwo(int x) {
 		double val = (double) x;
 		return (int) Math.pow(2, Math.ceil(log2(val)));
 	}
@@ -54,7 +54,7 @@ public class GenericFunctions {
 	 * @param x
 	 * @return
 	 */
-	static public double log2(double x) {
+	static final public double log2(double x) {
 		return Math.log(x)/Math.log(2);
 	}
 }

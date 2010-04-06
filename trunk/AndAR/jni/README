@@ -1,0 +1,23 @@
+AndAR native sources
+
+The AndAR project uses some native libraries in order to do time consuming stuff.
+It uses sources from: ARToolkit, Android Open Source Project, simclist
+
+Steps needed to compile the native sources:
+   1. Install the android NDK
+   2. (windows only) Install Cygwin
+   3. Open the Cygwin shell or some other shell on a linux system
+   4. Go to the NDK folder.
+          * This is where you unzipped the android NDK.
+          * e.g. you unzipped it to C:\cygwin do a cd /android-ndk. 
+   5. Create a symlink from your eclipse project folder (should be called AndOpenGLCam) to the ndk apps folder, e.g. ln -s /cygdrive/c/Users/Tobi/workspace/AndAR/ apps/AndAR (adapt the path)
+   6. In the root of the NDK folder run make APP=AndOpenGLCam
+   7. Refesh your project in Eclipse (right-click -> refresh)
+   8. If everything went smoothly your libs folder should contain .so files 
+   
+The AR folder contains anything ARToolkit specific, whereas the image_processing folder contains everything concerning color space conversion.
+The glue between Java an C is provided by the file AR/arToolkit.c.(regarding the ARToolkit)   
+
+Regards
+Tobi   
+   
