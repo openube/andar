@@ -1,5 +1,5 @@
 /**
-	Copyright (C) 2009  Tobias Domhan
+	Copyright (C) 2009,2010  Tobias Domhan
 
     This file is part of AndOpenGLCam.
 
@@ -58,6 +58,20 @@ public abstract class ARObject {
 	
 	
 	
+	public double getMarkerWidth() {
+		return markerWidth;
+	}
+
+
+
+
+	public double[] getCenter() {
+		return center;
+	}
+
+
+
+
 	public int getId() {
 		return id;
 	}
@@ -67,6 +81,14 @@ public abstract class ARObject {
 
 	protected void setId(int id) {
 		this.id = id;
+	}
+
+	
+
+
+
+	public String getPatternName() {
+		return patternName;
 	}
 
 

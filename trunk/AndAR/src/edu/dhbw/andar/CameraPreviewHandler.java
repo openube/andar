@@ -1,5 +1,5 @@
 /**
-	Copyright (C) 2009  Tobias Domhan
+	Copyright (C) 2009,2010  Tobias Domhan
 
     This file is part of AndOpenGLCam.
 

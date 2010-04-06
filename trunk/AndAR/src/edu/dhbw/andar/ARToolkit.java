@@ -1,5 +1,21 @@
 /**
- * 
+	Copyright (C) 2009,2010  Tobias Domhan
+
+    This file is part of AndOpenGLCam.
+
+    AndObjViewer is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    AndObjViewer is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with AndObjViewer.  If not, see <http://www.gnu.org/licenses/>.
+ 
  */
 package edu.dhbw.andar;
 
@@ -12,10 +28,13 @@ import java.util.Vector;
 import javax.microedition.khronos.opengles.GL10;
 
 import edu.dhbw.andar.exceptions.AndARException;
+import edu.dhbw.andar.util.IO;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.content.res.Resources;
+import android.util.AndroidRuntimeException;
 import android.util.Log;
 
 /**
@@ -24,6 +43,7 @@ import android.util.Log;
  *
  */
 public class ARToolkit {
+	private final Resources res;
 	private final String calibFileName = "camera_para.dat";
 	private int markerNum = -1;
 	//private double[] glTransMat = new double[16];
@@ -48,12 +68,13 @@ public class ARToolkit {
 	 * absolute path of the local files:
 	 * the calib file will be stored there, among other things
 	 */
-	private String baseFolder;
+	private File baseFolder;
 	
 	
-	public ARToolkit(String baseFile) {
+	public ARToolkit(Resources res, File baseFile) {
 		artoolkit_init();
 		this.baseFolder = baseFile;
+		this.res = res;
 	}
 	
 	/**
@@ -64,11 +85,20 @@ public class ARToolkit {
 	 * before doing so.
 	 * @param arobject The object that shell be registered.
 	 */
-	public synchronized void registerARObject(ARObject arobject) {
-		arobjects.add(arobject);
-		arobject.setId(nextObjectID);
-		
-		nextObjectID++;
+	public synchronized void registerARObject(ARObject arobject) 
+		throws AndARException{		
+		try {
+			IO.transferFileToPrivateFS(baseFolder,
+					arobject.getPatternName(), res);
+			arobjects.add(arobject);
+			arobject.setId(nextObjectID);
+			addObject(nextObjectID, arobject.getPatternName(),
+					arobject.getMarkerWidth(), arobject.getCenter());
+			nextObjectID++;
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new AndARException(e.getMessage());
+		}		
 	}
 	
 	
