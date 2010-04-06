@@ -2,12 +2,16 @@
 
 = Introduction =
 
-Add your content here.
+The AndAR project contains some native C sources. This page describes how to compile those.
 
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+ # Install the android [http://developer.android.com/sdk/ndk/index.html NDK]
+ # (windows only) Install [http://www.cygwin.com/ Cygwin]
+ # Open the Cygwin shell or some other shell on a linux system
+ # Make a symlink from your eclipse project folder (should be called AndOpenGLCam) to the ndk apps folder 
+ # change line 2 of Application.mk to APP_PROJECT_PATH := $(call my-dir)
+ # in the root of the NDK folder run make APP=AndOpenGLCam
+ # refesh your project in eclipse
+ # If everything went smoothly your libs folder will have the .so files that jni needs
