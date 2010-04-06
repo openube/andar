@@ -31,6 +31,18 @@
 #include <../marker_info.h>
 #include <android/log.h>
 #include <stdlib.h>
+#include <simclist.h>
+
+typedef struct {
+    int       name;
+    int        id;
+    int        visible;
+	int		   collide;
+    double     marker_coord[4][2];
+    double     trans[3][4];
+    double     marker_width;
+    double     marker_center[2];
+} Object;
 
 int             xsize, ysize;
 int             thresh = 100;
@@ -56,7 +68,7 @@ float gl_para[16];
  */
 JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__
   (JNIEnv * env, jobject object) {
-  
+	//initialize the list of objects
   }
 
 /*
