@@ -20,7 +20,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := ar
-LOCAL_SRC_FILES := mAlloc.c mFree.c mAllocDup.c mDup.c mAllocTrans.c mTrans.c mAllocMul.c   mMul.c mAllocInv.c   mInv.c   mSelfInv.c mAllocUnit.c  mUnit.c mDisp.c mDet.c mPCA.c vAlloc.c vDisp.c vFree.c vHouse.c vInnerP.c vTridiag.c paramGet.c paramDecomp.c paramDistortion.c  paramChangeSize.c  paramFile.c paramDisp.c arDetectMarker.c arGetTransMat.c arGetTransMat2.c arGetTransMat3.c arGetTransMatCont.c arLabeling.c arDetectMarker2.c arGetMarkerInfo.c arGetCode.c arUtil.c arToolKit.c arGl.c
+LOCAL_SRC_FILES := simclist.c mAlloc.c mFree.c mAllocDup.c mDup.c mAllocTrans.c mTrans.c mAllocMul.c   mMul.c mAllocInv.c   mInv.c   mSelfInv.c mAllocUnit.c  mUnit.c mDisp.c mDet.c mPCA.c vAlloc.c vDisp.c vFree.c vHouse.c vInnerP.c vTridiag.c paramGet.c paramDecomp.c paramDistortion.c  paramChangeSize.c  paramFile.c paramDisp.c arDetectMarker.c arGetTransMat.c arGetTransMat2.c arGetTransMat3.c arGetTransMatCont.c arLabeling.c arDetectMarker2.c arGetMarkerInfo.c arGetCode.c arUtil.c arToolKit.c arGl.c
 #LOCAL_SRC_FILES := arToolKit.c
 #arToolKit.c
 

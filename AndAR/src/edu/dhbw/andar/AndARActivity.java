@@ -19,6 +19,7 @@
  */
 package edu.dhbw.andar;
 
+import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andar.util.IO;
 import edu.dhbw.andopenglcam.R;
 
@@ -39,15 +40,25 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 
-public abstract class AndARActivity extends Activity implements Callback{
+public class AndARActivity extends Activity implements Callback{
 	private GLSurfaceView glSurfaceView;
 	private Camera camera;
-	private OpenGLCamRenderer renderer;
+	private AndARRenderer renderer;
 	private Resources res;
 	private CameraPreviewHandler cameraHandler;
 	private boolean mPreviewing = false;
 	private boolean mPausing = false;
-	private MarkerInfo markerInfo = new MarkerInfo();
+	private ARToolkit artoolkit;
+	private OpenGLRenderer customRenderer;
+	
+	public AndARActivity() {
+		artoolkit = new ARToolkit(10);
+	}
+	
+	public AndARActivity(int maxCapacity) {
+		artoolkit = new ARToolkit(maxCapacity);
+	}
+	
 	
     /** Called when the activity is first created. */
     @Override
@@ -60,8 +71,8 @@ public abstract class AndARActivity extends Activity implements Callback{
         res = getResources();  
         IO.transferFilesToSDCard(res);
         glSurfaceView = new OpenGLCamView(this);
-		renderer = new OpenGLCamRenderer(res, markerInfo);
-		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, markerInfo);
+		renderer = new AndARRenderer(res, artoolkit, customRenderer);
+		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, artoolkit);
         glSurfaceView.setRenderer(renderer);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         glSurfaceView.getHolder().addCallback(this);
@@ -70,9 +81,16 @@ public abstract class AndARActivity extends Activity implements Callback{
         	Debug.startMethodTracing("AndAR");
     }
     
-   
     
-    public void disableScreenTurnOff() {
+    /**
+     * Set a renderer that draws non AR stuff. Optional, may be set to null or omited.
+     * @param customRenderer
+     */
+    public void setNonARRenderer(OpenGLRenderer customRenderer) {
+		this.customRenderer = customRenderer;
+	}
+
+	public void disableScreenTurnOff() {
     	getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
     			WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -227,5 +245,11 @@ public abstract class AndARActivity extends Activity implements Callback{
 		this.cameraHandler.setMode(item.getItemId());
 		return true;
 	}
+
+	public ARToolkit getArtoolkit() {
+		return artoolkit;
+	}
+	
+	
 
 }

@@ -29,6 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andar.interfaces.PreviewFrameSink;
 
 
@@ -46,7 +47,7 @@ import android.util.Log;
  * @author Tobias Domhan
  *
  */
-public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
+public class AndARRenderer implements Renderer, PreviewFrameSink{
 	private Resources res;
 	private boolean DEBUG = false;
 	private int textureName;
@@ -82,8 +83,9 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	private int textureSize = 256;
 	private int previewFrameWidth = 256;
 	private int previewFrameHeight = 256;
-	private MarkerInfo markerInfo;
+	private ARToolkit markerInfo;
 	private float aspectRatio=1;
+	private OpenGLRenderer customRenderer;
 	
 	/**
 	 * mode, being either GL10.GL_RGB or GL10.GL_LUMINANCE
@@ -94,18 +96,23 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	 * the default constructer
 	 * @param int the {@link PixelFormat} of the Camera preview
 	 * @param res Resources
+	 * @param customRenderer non AR renderer, may be null
 	 */
-	public OpenGLCamRenderer(Resources res, MarkerInfo markerInfo)  {
+	public AndARRenderer(Resources res, ARToolkit markerInfo, OpenGLRenderer customRenderer)  {
 		this.res = res;
 		this.markerInfo = markerInfo;
+		this.customRenderer = customRenderer;
 	}
 
 	/* (non-Javadoc)
 	 * @see android.opengl.GLSurfaceView.Renderer#onDrawFrame(javax.microedition.khronos.opengles.GL10)
 	 */
 	@Override
-	public void onDrawFrame(GL10 gl) {
+	public final void onDrawFrame(GL10 gl) {
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+		if(customRenderer != null)
+			customRenderer.draw(gl);
+		
 		if(DEBUG)
 			gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
 		setupDraw2D(gl);
@@ -225,7 +232,7 @@ public class OpenGLCamRenderer implements Renderer, PreviewFrameSink{
 	 * @see edu.dhbw.andopenglcam.interfaces.PreviewFrameSink#setNextFrame(java.nio.ByteBuffer)
 	 */
 	@Override
-	public void setNextFrame(ByteBuffer buf) {
+	public final void setNextFrame(ByteBuffer buf) {
 		this.frameData = buf;
 		this.frameEnqueued = true;
 	}
