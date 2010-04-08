@@ -151,7 +151,7 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 
-		markerInfo.draw(gl);
+		//markerInfo.draw(gl);
 	}
 	
 

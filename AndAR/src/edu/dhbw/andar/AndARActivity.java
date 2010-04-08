@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 
 import edu.dhbw.andar.exceptions.AndARException;
+import edu.dhbw.andar.exceptions.AndARRuntimeException;
 import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andar.util.IO;
 import edu.dhbw.andopenglcam.R;
@@ -72,7 +73,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 			IO.transferFilesToPrivateFS(getFilesDir(),res);
 		} catch (IOException e) {
 			e.printStackTrace();
-			throw new AndARException(e.getMessage());
+			throw new AndARRuntimeException(e.getMessage());
 		}
         glSurfaceView = new OpenGLCamView(this);
 		renderer = new AndARRenderer(res, artoolkit, this);

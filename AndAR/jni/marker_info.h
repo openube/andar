@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     edu_dhbw_andar_ARToolkit
  * Method:    addObject
- * Signature: (ILjava/lang/String;D[D)V
+ * Signature: (ILedu/dhbw/andar/ARObject;Ljava/lang/String;D[D)V
  */
 JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
-  (JNIEnv *, jobject, jint, jstring, jdouble, jdoubleArray);
+  (JNIEnv *, jobject, jint, jobject, jstring, jdouble, jdoubleArray);
 
 /*
  * Class:     edu_dhbw_andar_ARToolkit

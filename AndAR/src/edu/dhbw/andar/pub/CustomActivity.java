@@ -16,14 +16,15 @@ public class CustomActivity extends AndARActivity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		
+		super.onCreate(savedInstanceState);
+		//CustomRenderer renderer = new CustomRenderer();//optional, may be set to null
+		//super.setNonARRenderer(renderer);//or might be omited
 		try {
-			super.onCreate(savedInstanceState);
-			//CustomRenderer renderer = new CustomRenderer();//optional, may be set to null
-			//super.setNonARRenderer(renderer);//or might be omited
-			//ARToolkit artoolkit = super.getArtoolkit();
-			/*CustomObject someObject = new CustomObject
+			ARToolkit artoolkit = super.getArtoolkit();
+			CustomObject someObject = new CustomObject
 				("test", "patt.hiro", 80.0, new double[]{0,0});
-			artoolkit.registerARObject(someObject);*/
+			artoolkit.registerARObject(someObject);
 		} catch (AndARException ex){
 			//handle the exception, that means: show the user what happened
 			System.out.println("");
@@ -31,7 +32,7 @@ public class CustomActivity extends AndARActivity {
 	}
 
 	/**
-	 * Inform the user about exceptions that occurred
+	 * Inform the user about exceptions that occurred in background threads.
 	 */
 	@Override
 	public void uncaughtException(Thread thread, Throwable ex) {
