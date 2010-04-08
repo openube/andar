@@ -88,11 +88,14 @@ public class ARToolkit {
 	public synchronized void registerARObject(ARObject arobject) 
 		throws AndARException{		
 		try {
+			//transfer pattern file to private space
 			IO.transferFileToPrivateFS(baseFolder,
 					arobject.getPatternName(), res);
 			arobjects.add(arobject);
 			arobject.setId(nextObjectID);
-			addObject(nextObjectID, arobject.getPatternName(),
+			String patternFile = baseFolder.getAbsolutePath() + File.separator + 
+			arobject.getPatternName();
+			addObject(nextObjectID, arobject, patternFile,
 					arobject.getMarkerWidth(), arobject.getCenter());
 			nextObjectID++;
 		} catch (IOException e) {
@@ -125,7 +128,7 @@ public class ARToolkit {
 	 * @param markerWidth the width of the object
 	 * @param markerCenter the center of the object
 	 */
-	private native void addObject(int id, String patternName, double markerWidth, double[] markerCenter);
+	private native void addObject(int id, ARObject obj, String patternName, double markerWidth, double[] markerCenter);
 	
 	/**
 	 * Remove the object from the list of registered objects.
@@ -189,7 +192,7 @@ public class ARToolkit {
 		if(screenWidth>0 && screenHeight>0&&imageWidth>0&&imageHeight>0) {
 			if(Config.DEBUG)
 				Log.i("MarkerInfo", "going to initialize the native library now");
-			artoolkit_init(baseFolder+"a"+File.separator+calibFileName, imageWidth, imageHeight, screenWidth, screenHeight);	
+			artoolkit_init(baseFolder+File.separator+calibFileName, imageWidth, imageHeight, screenWidth, screenHeight);	
 			if(Config.DEBUG)
 				Log.i("MarkerInfo", "alright, done initializing the native library");
 			initialized = true;

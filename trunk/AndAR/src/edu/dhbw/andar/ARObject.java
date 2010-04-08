@@ -19,6 +19,8 @@
  */
 package edu.dhbw.andar;
 
+import java.nio.FloatBuffer;
+
 import javax.microedition.khronos.opengles.GL10;
 
 /**
@@ -35,6 +37,10 @@ public abstract class ARObject {
 	private String patternName;
 	private double markerWidth;
 	private double[] center;
+	//this object must be locked while altering the glMatrix
+	private float[] glMatrix = new float[16];
+	//this object must be locked while altering the transMat
+	private double[] transMat = new double[16];//[3][4] array
 	private int id;
 	
 	/**
@@ -92,8 +98,6 @@ public abstract class ARObject {
 	}
 
 
-
-
 	/**
 	 * 
 	 * @return Is this object visible? -> is the marker belonging to this object visible?
@@ -107,9 +111,8 @@ public abstract class ARObject {
 	 * Get the current translation matrix.
 	 * @return
 	 */
-	public double[][] getTransMatrix() {
-		//TODO implement
-		return null;
+	public synchronized double[] getTransMatrix() {
+		return transMat;
 	}
 	
 	/**
@@ -117,8 +120,8 @@ public abstract class ARObject {
 	 * Everything draw here will be drawn directly onto the marker.
 	 * @param gl
 	 */
-	public void draw(GL10 gl) {
-		
+	public synchronized void draw(GL10 gl) {
+		gl.glLoadMatrixf(FloatBuffer.wrap(glMatrix));
 	}
 	
 }

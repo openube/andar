@@ -13,7 +13,7 @@ public class CustomObject extends ARObject {
 	
 	public CustomObject(String name, String patternName,
 			double markerWidth, double[] markerCenter) {
-		super("test", "patt.hirop", 80.0, new double[]{0.0,0.0});
+		super(name, patternName, markerWidth, markerCenter);
 	}
 	
 	/**

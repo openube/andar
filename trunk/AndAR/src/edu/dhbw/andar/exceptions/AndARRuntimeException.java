@@ -10,8 +10,8 @@ package edu.dhbw.andar.exceptions;
  * @author Tobi
  *
  */
-public class AndARException extends Exception {
-	public AndARException(String msg) {
+public class AndARRuntimeException extends RuntimeException {
+	public AndARRuntimeException(String msg) {
 		super(msg);
 	}
 }
