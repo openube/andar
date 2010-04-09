@@ -116,7 +116,7 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
 	} else {
 		//ok object allocate, now fill the struct with data
 #ifdef DEBUG_LOGGING
-		__android_log_print(ANDROID_LOG_INFO,"AR","registering object with name %d", name);
+		__android_log_print(ANDROID_LOG_INFO,"AR native","registering object with name %d", name);
 #endif
 		newObject->name = (int) name;
 		newObject->marker_width = (double) width;
@@ -156,7 +156,7 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__Ljava_lang
 
     /* set the initial camera parameters */
     if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
-	__android_log_write(ANDROID_LOG_ERROR,"AR","Camera parameter load error !!");
+	__android_log_write(ANDROID_LOG_ERROR,"AR native","Camera parameter load error !!");
 	    jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARRuntimeException" );  
 		if ( exc != NULL ) 
 			(*env)->ThrowNew( env, exc, "Camera parameter load error !!" ); 
@@ -164,7 +164,7 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__Ljava_lang
     }
 #ifdef DEBUG_LOGGING
     else {
-        __android_log_write(ANDROID_LOG_INFO,"AR","Camera parameter loaded successfully !!");
+        __android_log_write(ANDROID_LOG_INFO,"AR native","Camera parameter loaded successfully !!");
     }
 #endif
     arParamChangeSize( &wparam, imageWidth, imageHeight, &cparam );
@@ -174,14 +174,14 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__Ljava_lang
 
     if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
 	//throw runtime exception as this method may be called by a background thread
-	__android_log_write(ANDROID_LOG_ERROR,"AR","pattern load error !!");
+	__android_log_write(ANDROID_LOG_ERROR,"AR native","pattern load error !!");
         	    jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARRuntimeException" );  
 		if ( exc != NULL ) 
 			(*env)->ThrowNew( env, exc, "pattern load error !!" ); 
     } 
 #ifdef DEBUG_LOGGING
     else {
-	__android_log_print(ANDROID_LOG_INFO,"AR","pattern loaded successfully!! id:%d", patt_id);
+	__android_log_print(ANDROID_LOG_INFO,"AR native","pattern loaded successfully!! id:%d", patt_id);
     }
 #endif
     //initialize openGL stuff
@@ -211,13 +211,13 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 
     /* detect the markers in the video frame */
     if( arDetectMarker(dataPtr, thresh, &marker_info, &marker_num) < 0 ) {
-	__android_log_write(ANDROID_LOG_ERROR,"AR","arDetectMarker failed!!");
+	__android_log_write(ANDROID_LOG_ERROR,"AR native","arDetectMarker failed!!");
 		jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARException" );  
 		if ( exc != NULL ) 
 			(*env)->ThrowNew( env, exc, "failed to detect marker" ); 
     }
 #ifdef DEBUG_LOGGING
-   __android_log_print(ANDROID_LOG_INFO,"AR","detected %d markers",marker_num);
+   __android_log_print(ANDROID_LOG_INFO,"AR native","detected %d markers",marker_num);
 #endif
 
 
@@ -235,14 +235,14 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 	jdoubleArray transMatArrayObj = NULL;
 
 #ifdef DEBUG_LOGGING
-        __android_log_write(ANDROID_LOG_INFO,"AR","done detecting markers, going to iterate over markers now");
+        __android_log_write(ANDROID_LOG_INFO,"AR native","done detecting markers, going to iterate over markers now");
 #endif
 	//iterate over objects:
 	list_iterator_start(&objects);        /* starting an iteration "session" */
     while (list_iterator_hasnext(&objects)) { /* tell whether more values available */
         curObject = (Object *)list_iterator_next(&objects);     /* get the next value */
 #ifdef DEBUG_LOGGING
-		__android_log_print(ANDROID_LOG_INFO,"AR","now handling object with id %d",curObject->name);
+		__android_log_print(ANDROID_LOG_INFO,"AR native","now handling object with id %d",curObject->name);
 #endif
 		// //get field ID'		
 		if(visibleField == NULL) {
@@ -295,34 +295,60 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 		//object visible
 		
 		//lock the object
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","locking object");
+#endif
 		(*env)->MonitorEnter(env, curObject->objref);
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","done locking object...obtaining arrays");
+#endif
 		//access the arrays of the current object
 		glMatrixArrayObj = (*env)->GetObjectField(env, curObject->objref, glMatrixField);
 		transMatArrayObj = (*env)->GetObjectField(env, curObject->objref, transMatField);
-		float *glMatrix = (*env)->GetFloatArrayElements(env, image, JNI_FALSE);
+		float *glMatrix = (*env)->GetFloatArrayElements(env, glMatrixArrayObj, JNI_FALSE);
 		if(glMatrix == NULL ) {
 			continue;//something went wrong
 		}
-		double *transMat = (*env)->GetDoubleArrayElements(env, image, JNI_FALSE);
+		double* transMat = (*env)->GetDoubleArrayElements(env, transMatArrayObj, JNI_FALSE);
 		if(transMat == NULL) {
 			continue;//something went wrong
 		}
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","calculating trans mat now");
+#endif
 		// get the transformation between the marker and the real camera 
 		//arGetTransMat(&marker_info[k], curObject->marker_center, curObject->marker_width, curObject->trans);
 		arGetTransMat(&marker_info[k], curObject->marker_center, curObject->marker_width, transMat);
+		//arGetTransMat(&marker_info[k], curObject->marker_center, curObject->marker_width, patt_trans);
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","calculating OpenGL trans mat now");
+#endif
 		argConvGlpara(transMat, glMatrix);
-		
+		//argConvGlpara(patt_trans, gl_para);
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","releasing arrays");
+#endif
 		(*env)->ReleaseFloatArrayElements(env, glMatrixArrayObj, glMatrix, 0); 
 		(*env)->ReleaseDoubleArrayElements(env, transMatArrayObj, transMat, 0); 
 		
 		(*env)->SetBooleanField(env, curObject->objref, visibleField, JNI_TRUE);
-		
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","releasing lock");
+#endif		
 		//release the lock on the object
 		(*env)->MonitorExit(env, curObject->objref);
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","done releasing lock");
+#endif
     }
     list_iterator_stop(&objects);         /* starting the iteration "session" */
-
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","releasing image array");
+#endif
     (*env)->ReleaseByteArrayElements(env, image, dataPtr, 0); 
+#ifdef DEBUG_LOGGING
+        __android_log_write(ANDROID_LOG_INFO,"AR native","releasing image array");
+#endif
     return k;
 }
 const float box[] =  {

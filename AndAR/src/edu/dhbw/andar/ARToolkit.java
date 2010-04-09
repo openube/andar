@@ -219,14 +219,15 @@ public class ARToolkit {
 		if(initialized) {
 			if(Config.DEBUG)
 				Log.i("MarkerInfo", "going to draw opengl stuff now");
-			synchronized (transMatMonitor) {
-				draw();
+			for (ARObject obj : arobjects) {
+				obj.draw(gl);
 			}
 		}
 	}
 	
 	class DetectMarkerWorker extends Thread {
 		private byte[] curFrame;
+		private boolean newFrame = false;
 		
 		/**
 		 * 
@@ -242,24 +243,29 @@ public class ARToolkit {
 		 */
 		@Override
 		public synchronized void run() {			
-			try {
-				wait();//wait for initial frame
-			} catch (InterruptedException e) {}
+			
 			while(true) {
+				while(!newFrame) {
+					//spurious wakeups
+					try {
+						wait();//wait for next frame
+					} catch (InterruptedException e) {}
+				}
+				newFrame = false;
 				//the monitor is locked inside the method
 				artoolkit_detectmarkers(curFrame, transMatMonitor);
-				try {
-					wait();//wait for next frame
-				} catch (InterruptedException e) {}
 			}
 		}
 		
-		synchronized final void nextFrame(byte[] frame) {
+		final void nextFrame(byte[] frame) {
 			if(this.getState() == Thread.State.WAITING) {
 				//ok, we are ready for a new frame:
 				curFrame = frame;
+				newFrame = true;
 				//do the work:
-				this.notify();
+				synchronized (this) {
+					this.notify();
+				}	
 			} else {
 				//ignore it
 			}

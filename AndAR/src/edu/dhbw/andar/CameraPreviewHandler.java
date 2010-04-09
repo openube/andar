@@ -51,6 +51,7 @@ import android.util.Log;
 public class CameraPreviewHandler implements PreviewCallback {
 	private GLSurfaceView glSurfaceView;
 	private PreviewFrameSink frameSink;
+	private CameraConstFPS constFPS = null;
 	private Resources res;
 	private int textureSize=256;
 	private int previewFrameWidth=240;
@@ -160,6 +161,10 @@ public class CameraPreviewHandler implements PreviewCallback {
 		//default mode:
 		setMode(MODE_RGB);
 		markerInfo.setImageSize(previewFrameWidth, previewFrameHeight);
+		if(Config.USE_ONE_SHOT_PREVIEW) {
+			constFPS  = new CameraConstFPS(5, camera);
+			constFPS.start();
+		}
 	}
 
 	//size of a texture must be a power of 2
@@ -188,7 +193,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	
 	
 	protected void setMode(int pMode) {
-		synchronized (modeLock) {
+		synchronized (modeLock) {			
 			this.mode = pMode;
 			switch(mode) {
 			case MODE_RGB:
@@ -220,6 +225,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 */
 	class ConversionWorker extends Thread {
 		private byte[] curFrame;
+		private boolean newFrame = false;
 		private PreviewFrameSink frameSink;
 		
 		/**
@@ -236,10 +242,14 @@ public class CameraPreviewHandler implements PreviewCallback {
 		 */
 		@Override
 		public synchronized void run() {			
-			try {
-				wait();//wait for initial frame
-			} catch (InterruptedException e) {}
 			while(true) {
+				while(!newFrame) {
+					//protect against spurious wakeups
+					try {
+						wait();//wait for next frame
+					} catch (InterruptedException e) {}
+				}
+				newFrame = false;
 				Log.d("ConversionWorker","starting conversion");
 				frameSink.getFrameLock().lock();
 				synchronized (modeLock) {
@@ -247,8 +257,11 @@ public class CameraPreviewHandler implements PreviewCallback {
 					case MODE_RGB:
 						//color:
 						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
-						Log.d("ConversionWorker","handing frame over to sink");
+						if(Config.DEBUG)
+							Log.d("ConversionWorker","handing frame over to sink");
 						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+						if(Config.DEBUG)
+							Log.d("ConversionWorker","done converting");
 						break;
 					case MODE_GRAY:
 						//luminace: 
@@ -273,26 +286,66 @@ public class CameraPreviewHandler implements PreviewCallback {
 				}
 				frameSink.getFrameLock().unlock();
 				glSurfaceView.requestRender();
-				if(Config.USE_ONE_SHOT_PREVIEW) {
+				if(Config.USE_ONE_SHOT_PREVIEW && CameraPreviewHandler.this.constFPS != null) {
+					//we may get a new frame now.
+					synchronized(CameraPreviewHandler.this.constFPS) {
+						CameraPreviewHandler.this.constFPS.notify();
+					}					
+				}
+				/*if(Config.USE_ONE_SHOT_PREVIEW) {
 					synchronized (CameraPreviewHandler.this) {
 						cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
 					}
-		        }				
-				try {
-					wait();//wait for next frame
-				} catch (InterruptedException e) {}
+		        }*/				
 			}
 		}
 		
-		synchronized final void nextFrame(byte[] frame) {
+		final void nextFrame(byte[] frame) {
 			if(this.getState() == Thread.State.WAITING) {
 				//ok, we are ready for a new frame:
 				curFrame = frame;
+				newFrame = true;
 				//do the work:
-				this.notify();
+				synchronized (this) {
+					this.notify();
+				}				
 			} else {
 				//ignore it
+				/*if(Config.USE_ONE_SHOT_PREVIEW) {
+					synchronized (CameraPreviewHandler.this) {
+						cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
+					}
+		        }*/	
 			}
+		}
+	}
+	
+	/**
+	 * ensures a constant minimum frame rate.
+	 * @author tobi
+	 *
+	 */
+	class CameraConstFPS extends Thread {
+		
+		private long waitTime;
+		private Camera cam;
+		
+		public CameraConstFPS(int fps, Camera cam) {
+			waitTime = (long)(1.0/fps*1000);
+			this.cam = cam;
+		}
+		
+		@Override
+		public synchronized void run() {
+			super.run();
+			while(true) {
+				try {
+					wait(waitTime);
+				} catch (InterruptedException e) {}
+				synchronized (CameraPreviewHandler.this) {
+					cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
+				}
+			}			
 		}
 	}
 

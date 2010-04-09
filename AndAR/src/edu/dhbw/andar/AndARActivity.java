@@ -166,9 +166,9 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	        }
 	        if(!Config.USE_ONE_SHOT_PREVIEW) {
 	        	camera.setPreviewCallback(cameraHandler);	 
-	        } else {
+	        } /*else {
 	        	camera.setOneShotPreviewCallback(cameraHandler);
-	        }
+	        }*/
 	        try {
 				cameraHandler.init(camera);
 			} catch (Exception e) {
