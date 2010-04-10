@@ -1,0 +1,24 @@
+#summary This page explains the structure of the project's sources.
+
+= Introduction =
+
+This page explains the structure of the project's sources.
+
+
+= Details =
+
+The source code repository contains three Eclipse (Galileo) projects. Those are:
+ * AndAR
+   * Currently *under development*.
+   * Will have a pure Java API to the ARToolkit.
+ * AndOpenGLCam
+   * My first try to get the ARToolkit working on Android.
+   * Should basically work.
+   * There is no real API in order to replace the cube with something else, you would have to edit the C source code.
+   * Will be *deprecated* as soon as the AndAR project advances.
+ * AndObjViewer
+   * A app to view [http://en.wikipedia.org/wiki/Obj wavefront obj] 3d models
+   * Has *nothing* to do with the Augemented Reality stuff.
+   * Is *not* needed when you would like to run one of the other projects.
+
+
