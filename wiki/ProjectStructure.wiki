@@ -1,4 +1,5 @@
 #summary This page explains the structure of the project's sources.
+#labels Phase-Implementation
 
 = Introduction =
 
@@ -20,5 +21,3 @@ The source code repository contains three Eclipse (Galileo) projects. Those are:
    * A app to view [http://en.wikipedia.org/wiki/Obj wavefront obj] 3d models
    * Has *nothing* to do with the Augemented Reality stuff.
    * Is *not* needed when you would like to run one of the other projects.
-
-
