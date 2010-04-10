@@ -1,4 +1,4 @@
-#How to compile the native sources
+#summary How to compile the native sources
 
 = Introduction =
 
