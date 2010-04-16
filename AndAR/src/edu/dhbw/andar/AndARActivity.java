@@ -152,7 +152,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     		
 	        Parameters params = camera.getParameters();
 	        params.setPreviewSize(240,160);
-	        //params.setPreviewFrameRate(10);//TODO remove restriction
+	        
 	        //try to set the preview format
 	        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
 	        camera.setParameters(params);
@@ -229,27 +229,6 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         closeCamera();
 	}
 	
-	/* (non-Javadoc)
-	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
-	 */
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-    	menu.add(0, CameraPreviewHandler.MODE_RGB, 0, res.getText(R.string.mode_rgb));
-	    menu.add(0, CameraPreviewHandler.MODE_GRAY, 0, res.getText(R.string.mode_gray));
-	    menu.add(0, CameraPreviewHandler.MODE_BIN, 0, res.getText(R.string.mode_bin));
-	    menu.add(0, CameraPreviewHandler.MODE_EDGE, 0, res.getText(R.string.mode_edges));
-	    menu.add(0, CameraPreviewHandler.MODE_CONTOUR, 0, res.getText(R.string.mode_contours));   
-		return true;
-	}
-	
-	/* (non-Javadoc)
-	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
-	 */
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		this.cameraHandler.setMode(item.getItemId());
-		return true;
-	}
 
 	public ARToolkit getArtoolkit() {
 		return artoolkit;

@@ -295,7 +295,8 @@ public class CameraPreviewHandler implements PreviewCallback {
 					synchronized(CameraPreviewHandler.this.constFPS) {
 						CameraPreviewHandler.this.constFPS.notify();
 					}					
-				}			
+				}
+				yield();
 			}
 		}
 		

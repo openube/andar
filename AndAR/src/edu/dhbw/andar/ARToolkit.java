@@ -28,6 +28,7 @@ import java.util.Vector;
 import javax.microedition.khronos.opengles.GL10;
 
 import edu.dhbw.andar.exceptions.AndARException;
+import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andar.util.IO;
 
 import android.content.Context;
@@ -192,6 +193,7 @@ public class ARToolkit {
 			if(Config.DEBUG)
 				Log.i("MarkerInfo", "going to initialize the native library now");
 			artoolkit_init(baseFolder+File.separator+calibFileName, imageWidth, imageHeight, screenWidth, screenHeight);	
+			ARObject.glCameraMatrixBuffer = GraphicsUtil.makeFloatBuffer(ARObject.glCameraMatrix);
 			if(Config.DEBUG)
 				Log.i("MarkerInfo", "alright, done initializing the native library");
 			initialized = true;
