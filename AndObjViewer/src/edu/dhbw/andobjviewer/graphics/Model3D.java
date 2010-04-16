@@ -125,9 +125,10 @@ public class Model3D implements Serializable{
 				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, mat.ambientlight);
 				gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_DIFFUSE, mat.diffuselight);
 				gl.glMaterialf(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, mat.shininess);
-				//already checked that the group has a texture..no need to do it here again
-				gl.glTexCoordPointer(2,GL10.GL_FLOAT, 0, group.texcoords);
-				gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs.get(mat).intValue());
+				if(mat.hasTexture()) {
+					gl.glTexCoordPointer(2,GL10.GL_FLOAT, 0, group.texcoords);
+					gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs.get(mat).intValue());
+				}
 			}
 			gl.glVertexPointer(3,GL10.GL_FLOAT, 0, group.vertices);
 	        gl.glNormalPointer(GL10.GL_FLOAT,0, group.normals);	        
