@@ -215,19 +215,21 @@ public class ModelViewerActivity extends Activity{
 					float dY = lastY - event.getY();
 					lastX = event.getX();
 					lastY = event.getY();
-					switch(mode) {
-						case MENU_SCALE:
-							model.setScale(dY/100);
-				            break;
-				        case MENU_ROTATE:
-				        	model.setXrot(dY);//dY-> Rotation um die X-Achse
-							model.setYrot(dX);//dX-> Rotation um die Y-Achse
-				            break;
-				        case MENU_TRANSLATE:
-				        	model.setXpos(dX/-100f);
-							model.setYpos(dY/100f);
-				        	break;
-					}					
+					if(model != null) {
+						switch(mode) {
+							case MENU_SCALE:
+								model.setScale(dY/100);
+					            break;
+					        case MENU_ROTATE:
+					        	model.setXrot(dY);//dY-> Rotation um die X-Achse
+								model.setYrot(dX);//dX-> Rotation um die Y-Achse
+					            break;
+					        case MENU_TRANSLATE:
+					        	model.setXpos(dX/-100f);
+								model.setYpos(dY/100f);
+					        	break;
+						}		
+					}
 					break;
 				//Action ended
 				case MotionEvent.ACTION_CANCEL:	
