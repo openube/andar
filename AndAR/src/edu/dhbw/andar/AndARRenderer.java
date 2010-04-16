@@ -66,12 +66,12 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 	private float[] ambientlight = {.3f, .3f, .3f, 1f};
 	private float[] diffuselight = {.7f, .7f, .7f, 1f};
 	private float[] specularlight = {0.6f, 0.6f, 0.6f, 1f};
-	private float[] specref = {0.99f,	0.94f,	0.81f,	1.0f};
-	private FloatBuffer specrefBuffer = makeFloatBuffer(specref);
-	private float[] difcref = {0.78f,	0.57f,	0.11f,	1.0f};
-	private FloatBuffer difcrefBuffer = makeFloatBuffer(difcref);
-	private float[] ambref = {	0.33f,	0.22f,	0.03f,	1.0f};
-	private FloatBuffer ambrefBuffer = makeFloatBuffer(ambref);
+	private float[] lightposition = {100.0f,-200.0f,200.0f,0.0f};
+	
+	private FloatBuffer lightPositionBuffer =  makeFloatBuffer(lightposition);
+	private FloatBuffer specularLightBuffer = makeFloatBuffer(specularlight);
+	private FloatBuffer diffuseLightBuffer = makeFloatBuffer(diffuselight);
+	private FloatBuffer ambientLightBuffer = makeFloatBuffer(ambientlight);
 	
 	private FloatBuffer textureBuffer;
 	private FloatBuffer squareBuffer;
@@ -151,7 +151,15 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 
-		//markerInfo.draw(gl);
+		
+		gl.glEnable(GL10.GL_LIGHTING);
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, ambientLightBuffer);
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, diffuseLightBuffer);
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, specularLightBuffer);
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPositionBuffer);
+		gl.glEnable(GL10.GL_LIGHT0);
+		
+		markerInfo.draw(gl);
 	}
 	
 
@@ -208,6 +216,7 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, makeFloatBuffer(ambientlight));
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, makeFloatBuffer(diffuselight));
 		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, makeFloatBuffer(specularlight));
+		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, makeFloatBuffer(new float[]{100.0f,-200.0f,200.0f,0.0f}));
 		gl.glEnable(GL10.GL_LIGHT0);
 		
 		gl.glDisable(GL10.GL_COLOR_MATERIAL);

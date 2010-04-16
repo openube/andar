@@ -39,6 +39,7 @@ public abstract class ARObject {
 	private double[] center;
 	//this object must be locked while altering the glMatrix
 	private float[] glMatrix = new float[16];
+	private static float[] glCameraMatrix = new float[16];
 	//this object must be locked while altering the transMat
 	private double[] transMat = new double[16];//[3][4] array
 	private int id;
@@ -118,9 +119,18 @@ public abstract class ARObject {
 	/**
 	 * Do OpenGL stuff.
 	 * Everything draw here will be drawn directly onto the marker.
+	 * TODO replace wrap by real floatbuffer
 	 * @param gl
 	 */
 	public synchronized void draw(GL10 gl) {
+		//argDrawMode3D
+		gl.glMatrixMode(GL10.GL_MODELVIEW);
+	    gl.glLoadIdentity();
+	    //argDraw3dCamera
+	    gl.glMatrixMode(GL10.GL_PROJECTION);
+	    gl.glLoadMatrixf( FloatBuffer.wrap(glCameraMatrix) );
+	    
+	    gl.glMatrixMode(GL10.GL_MODELVIEW);
 		gl.glLoadMatrixf(FloatBuffer.wrap(glMatrix));
 	}
 	

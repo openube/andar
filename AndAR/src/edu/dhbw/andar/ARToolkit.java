@@ -159,7 +159,6 @@ public class ARToolkit {
 	 */
 	private native int artoolkit_detectmarkers(byte[] in, Object transMatMonitor);
 	
-	private native void draw();
 	
 	/**
 	 * 
@@ -215,12 +214,13 @@ public class ARToolkit {
 	 * Draw all ARObjects.
 	 * @param gl
 	 */
-	public void draw(GL10 gl) {
+	public final void draw(GL10 gl) {
 		if(initialized) {
 			if(Config.DEBUG)
 				Log.i("MarkerInfo", "going to draw opengl stuff now");
 			for (ARObject obj : arobjects) {
-				obj.draw(gl);
+				if(obj.isVisible())
+					obj.draw(gl);
 			}
 		}
 	}
