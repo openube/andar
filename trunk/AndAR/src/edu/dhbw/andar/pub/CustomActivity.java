@@ -1,10 +1,14 @@
 package edu.dhbw.andar.pub;
 
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import edu.dhbw.andar.ARToolkit;
 import edu.dhbw.andar.AndARActivity;
+import edu.dhbw.andar.CameraPreviewHandler;
 import edu.dhbw.andar.exceptions.AndARException;
 import edu.dhbw.andar.interfaces.OpenGLRenderer;
+import edu.dhbw.andopenglcam.R;
 
 /**
  * Example of an application that makes use of the AndAR toolkit.
@@ -13,7 +17,8 @@ import edu.dhbw.andar.interfaces.OpenGLRenderer;
  */
 public class CustomActivity extends AndARActivity {
 
-	
+	CustomObject someObject;
+	ARToolkit artoolkit;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		
@@ -21,14 +26,17 @@ public class CustomActivity extends AndARActivity {
 		//CustomRenderer renderer = new CustomRenderer();//optional, may be set to null
 		//super.setNonARRenderer(renderer);//or might be omited
 		try {
-			ARToolkit artoolkit = super.getArtoolkit();
-			CustomObject someObject = new CustomObject
+			artoolkit = super.getArtoolkit();
+			someObject = new CustomObject
 				("test", "patt.hiro", 80.0, new double[]{0,0});
-			artoolkit.registerARObject(someObject);
 			CustomObject someOtherObject = new CustomObject
 			("test2", "android.patt", 80.0, new double[]{0,0}, new float[]{1.0f, 1.0f, 0f, 1.0f});
+			CustomObject someOtherObject2 = new CustomObject
+			("test2", "patt.hiro", 80.0, new double[]{0,0}, new float[]{1.0f, 0.0f, 0f, 1.0f});
 			artoolkit.registerARObject(someOtherObject);
-			
+			//artoolkit.registerARObject(someOtherObject2);
+			//artoolkit.unregisterARObject(someOtherObject2);
+			artoolkit.registerARObject(someObject);
 		} catch (AndARException ex){
 			//handle the exception, that means: show the user what happened
 			System.out.println("");
@@ -41,6 +49,33 @@ public class CustomActivity extends AndARActivity {
 	@Override
 	public void uncaughtException(Thread thread, Throwable ex) {
 		System.out.println("");
+	}
+	
+	/* (non-Javadoc)
+	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+    	menu.add(0, 0, 0, "reg");
+    	menu.add(0, 1, 0, "unreg");
+		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if(item.getItemId()==1) {
+			artoolkit.unregisterARObject(someObject);
+		} else if(item.getItemId()==0) {
+			try {
+				artoolkit.registerARObject(someObject);
+			} catch (AndARException e) {
+				e.printStackTrace();
+			}
+		}
+		return true;
 	}
 	
 	
