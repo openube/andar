@@ -20,21 +20,20 @@
 package edu.dhbw.andar;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import edu.dhbw.andar.interfaces.PreviewFrameSink;
-import edu.dhbw.andopenglcam.R;
 import android.content.res.Resources;
-import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
+import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
+import edu.dhbw.andar.interfaces.PreviewFrameSink;
+import edu.dhbw.andopenglcam.R;
 
 /**
  * Handles callbacks of the camera preview
@@ -52,6 +51,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private GLSurfaceView glSurfaceView;
 	private PreviewFrameSink frameSink;
 	private CameraConstFPS constFPS = null;
+	private AutoFocusHandler focusHandler = null;
 	private Resources res;
 	private int textureSize=256;
 	private int previewFrameWidth=240;
@@ -164,6 +164,10 @@ public class CameraPreviewHandler implements PreviewCallback {
 		if(Config.USE_ONE_SHOT_PREVIEW) {
 			constFPS  = new CameraConstFPS(5, camera);
 			constFPS.start();
+		}
+		if(focusHandler == null) {
+			focusHandler = new AutoFocusHandler(camera);
+			focusHandler.start();
 		}
 	}
 
@@ -291,12 +295,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 					synchronized(CameraPreviewHandler.this.constFPS) {
 						CameraPreviewHandler.this.constFPS.notify();
 					}					
-				}
-				/*if(Config.USE_ONE_SHOT_PREVIEW) {
-					synchronized (CameraPreviewHandler.this) {
-						cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
-					}
-		        }*/				
+				}			
 			}
 		}
 		
@@ -311,11 +310,6 @@ public class CameraPreviewHandler implements PreviewCallback {
 				}				
 			} else {
 				//ignore it
-				/*if(Config.USE_ONE_SHOT_PREVIEW) {
-					synchronized (CameraPreviewHandler.this) {
-						cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
-					}
-		        }*/	
 			}
 		}
 	}
@@ -346,6 +340,33 @@ public class CameraPreviewHandler implements PreviewCallback {
 					cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
 				}
 			}			
+		}
+	}
+	
+	class AutoFocusHandler extends Thread implements AutoFocusCallback {
+		
+		private Camera camera;
+		
+		public AutoFocusHandler(Camera camera) {
+			this.camera = camera;
+		}
+		
+		@Override
+		public void run() {
+			super.run();
+			while(true) {
+				camera.autoFocus(this);
+				try {
+					Thread.sleep(20000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		@Override
+		public void onAutoFocus(boolean arg0, Camera arg1) {
+			
 		}
 	}
 

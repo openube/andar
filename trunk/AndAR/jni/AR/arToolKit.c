@@ -71,8 +71,8 @@ list_t objects;
 int objectcomparator(const void *a, const void *b) {
 	/* compare areas */
 	const Object *A = (Object *) a;
-	const Object *B = (Object *) b;
-	if(A->name == B->name)
+	const int *B = (int *) b;
+	if(A->name == *B)
 		return 0;
 	else
 		return 1;
@@ -138,6 +138,17 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
 	(*env)->ReleaseDoubleArrayElements(env, center, centerArr, 0);
 	(*env)->ReleaseStringUTFChars( env, patternFile, cPatternFile);
   }
+  
+
+/*
+ * Class:     edu_dhbw_andar_ARToolkit
+ * Method:    removeObject
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_removeObject
+  (JNIEnv *env, jobject artoolkit, jint objectID) {
+	list_delete(&objects,&objectID);
+  }
 
 /*
  * Class:     edu_dhbw_andar_ARToolkit
@@ -186,6 +197,22 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__Ljava_lang
 #endif
     //initialize openGL stuff
     argInit( &cparam, 1.0, 0, screenWidth, screenHeight, 0 );
+	
+	//gl_cpara
+	jclass arObjectClass = (*env)->FindClass(env, "edu/dhbw/andar/ARObject");
+	if (arObjectClass != NULL) {
+		jfieldID glCameraMatrixFieldID = (*env)->GetStaticFieldID(env, arObjectClass, "glCameraMatrix", "[F");
+		if (glCameraMatrixFieldID != NULL) {
+			jobject glCameraMatrixObj = (*env)->GetStaticObjectField(env, arObjectClass, glCameraMatrixFieldID);
+			if(glCameraMatrixObj != NULL) {
+				float *glCamMatrix = (*env)->GetFloatArrayElements(env, glCameraMatrixObj, JNI_FALSE);
+				int i=0;
+				for(i=0;i<16;i++)
+					glCamMatrix[i] = gl_cpara[i];
+				(*env)->ReleaseFloatArrayElements(env, glCameraMatrixObj, glCamMatrix, 0); 
+			}
+		}
+	}
 	
 	(*env)->ReleaseStringUTFChars( env, calibFile, cparam_name);
 }
@@ -239,11 +266,13 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 #endif
 	//iterate over objects:
 	list_iterator_start(&objects);        /* starting an iteration "session" */
+	int itCount = 0;
     while (list_iterator_hasnext(&objects)) { /* tell whether more values available */
         curObject = (Object *)list_iterator_next(&objects);     /* get the next value */
 #ifdef DEBUG_LOGGING
-		__android_log_print(ANDROID_LOG_INFO,"AR native","now handling object with id %d",curObject->name);
+		__android_log_print(ANDROID_LOG_INFO,"AR native","now handling object with id %d, in %d iteration",curObject->name, itCount);
 #endif
+		itCount++;
 		// //get field ID'		
 		if(visibleField == NULL) {
 			if(arObjectClass == NULL) {
@@ -276,6 +305,9 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 
 		if(visibleField == NULL || glMatrixField == NULL || transMatField == NULL) {
 			//something went wrong..
+#ifdef DEBUG_LOGGING
+		__android_log_write(ANDROID_LOG_INFO,"AR native","error: either visibleField or glMatrixField or transMatField null");
+#endif
 			continue;
 		}
 		
@@ -283,8 +315,18 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 		k = -1;
 		for( j = 0; j < marker_num; j++ ) {
 			if( curObject->id == marker_info[j].id ) {
-				if( k == -1 ) k = j;
-				else if( marker_info[k].cf < marker_info[j].cf ) k = j;
+				if( k == -1 ) {
+					k = j;
+#ifdef DEBUG_LOGGING
+					__android_log_print(ANDROID_LOG_INFO,"AR native","detected object %d with marker %d and object marker %d",curObject->name,k,curObject->id);
+#endif
+				}
+				else if( marker_info[k].cf < marker_info[j].cf )  {
+#ifdef DEBUG_LOGGING
+					__android_log_print(ANDROID_LOG_INFO,"AR native","detected better object %d with marker %d and object marker %d",curObject->name,k,curObject->id);
+#endif
+					k = j;
+				}
 			}
 		}
 		if( k == -1 ) {
@@ -305,6 +347,9 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 		//access the arrays of the current object
 		glMatrixArrayObj = (*env)->GetObjectField(env, curObject->objref, glMatrixField);
 		transMatArrayObj = (*env)->GetObjectField(env, curObject->objref, transMatField);
+		if(transMatArrayObj == NULL || glMatrixArrayObj == NULL) {
+			continue;//something went wrong
+		}
 		float *glMatrix = (*env)->GetFloatArrayElements(env, glMatrixArrayObj, JNI_FALSE);
 		if(glMatrix == NULL ) {
 			continue;//something went wrong
@@ -350,128 +395,6 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
         __android_log_write(ANDROID_LOG_INFO,"AR native","releasing image array");
 #endif
     return k;
-}
-const float box[] =  {
-			// FRONT
-			-25.0f, -25.0f,  25.0f,
-			 25.0f, -25.0f,  25.0f,
-			-25.0f,  25.0f,  25.0f,
-			 25.0f,  25.0f,  25.0f,
-			// BACK
-			-25.0f, -25.0f, -25.0f,
-			-25.0f,  25.0f, -25.0f,
-			 25.0f, -25.0f, -25.0f,
-			 25.0f,  25.0f, -25.0f,
-			// LEFT
-			-25.0f, -25.0f,  25.0f,
-			-25.0f,  25.0f,  25.0f,
-			-25.0f, -25.0f, -25.0f,
-			-25.0f,  25.0f, -25.0f,
-			// RIGHT
-			 25.0f, -25.0f, -25.0f,
-			 25.0f,  25.0f, -25.0f,
-			 25.0f, -25.0f,  25.0f,
-			 25.0f,  25.0f,  25.0f,
-			// TOP
-			-25.0f,  25.0f,  25.0f,
-			 25.0f,  25.0f,  25.0f,
-			 -25.0f,  25.0f, -25.0f,
-			 25.0f,  25.0f, -25.0f,
-			// BOTTOM
-			-25.0f, -25.0f,  25.0f,
-			-25.0f, -25.0f, -25.0f,
-			 25.0f, -25.0f,  25.0f,
-			 25.0f, -25.0f, -25.0f,
-		};
-const float normals[] =  {
-			// FRONT
-			0.0f, 0.0f,  1.0f,
-			0.0f, 0.0f,  1.0f,
-			0.0f, 0.0f,  1.0f,
-			0.0f, 0.0f,  1.0f,
-			// BACK
-			0.0f, 0.0f,  -1.0f,
-			0.0f, 0.0f,  -1.0f,
-			0.0f, 0.0f,  -1.0f,
-			0.0f, 0.0f,  -1.0f,
-			// LEFT
-			-1.0f, 0.0f,  0.0f,
-			-1.0f, 0.0f,  0.0f,
-			-1.0f, 0.0f,  0.0f,
-			-1.0f, 0.0f,  0.0f,
-			// RIGHT
-			1.0f, 0.0f,  0.0f,
-			1.0f, 0.0f,  0.0f,
-			1.0f, 0.0f,  0.0f,
-			1.0f, 0.0f,  0.0f,
-			// TOP
-			0.0f, 1.0f,  0.0f,
-			0.0f, 1.0f,  0.0f,
-			0.0f, 1.0f,  0.0f,
-			0.0f, 1.0f,  0.0f,
-			// BOTTOM
-			0.0f, -1.0f,  0.0f,
-			0.0f, -1.0f,  0.0f,
-			0.0f, -1.0f,  0.0f,
-			0.0f, -1.0f,  0.0f,
-		};
-//Lighting variables
-const static GLfloat   mat_ambient[]     = {0.0, 0.0, 1.0, 1.0};
-const static GLfloat   mat_flash[]       = {0.0, 0.0, 1.0, 1.0};
-const static GLfloat   mat_flash_shiny[] = {50.0};
-const static GLfloat   light_position[]  = {100.0,-200.0,200.0,0.0};
-const static GLfloat   ambi[]            = {0.1, 0.1, 0.1, 0.1};
-const static GLfloat   lightZeroColor[]  = {0.9, 0.9, 0.9, 0.1};
-/*
- * Class:     edu_dhbw_andar_MarkerInfo
- * Method:    draw
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_draw
-  (JNIEnv *env, jobject object) {
-  return;//TODO remove
-
-  if(cur_marker_id != -1) {
-    //setup the 3D environment
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf( gl_cpara );
-    glClearDepthf( 1.0 );
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf( gl_para );
-
-
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
-    glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);	
-    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-
-    //draw cube
-    glColor4f(0, 1.0f, 0, 1.0f);
-    glTranslatef( 0.0, 0.0, 12.5 );
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisable(GL_TEXTURE_2D);
-    glVertexPointer(3, GL_FLOAT, 0, box);
-    glNormalPointer(GL_FLOAT,0, normals);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
-    glDrawArrays(GL_TRIANGLE_STRIP, 8, 4);
-    glDrawArrays(GL_TRIANGLE_STRIP, 12, 4);
-    glDrawArrays(GL_TRIANGLE_STRIP, 16, 4);
-    glDrawArrays(GL_TRIANGLE_STRIP, 20, 4);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-  }
 }
 
 
