@@ -284,6 +284,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		}
 		
 		synchronized void nextFrame(byte[] frame) {
+			//TODO this behavior should be changed for oneshotpreviewcallback
 			if(this.getState() == Thread.State.WAITING) {
 				//ok, we are ready for a new frame:
 				curFrame = frame;
