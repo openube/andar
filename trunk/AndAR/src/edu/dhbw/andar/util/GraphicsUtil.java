@@ -18,4 +18,21 @@ public class GraphicsUtil {
 		fb.position(0);
 		return fb;
 	}
+	/**
+	 * Make a direct NIO ByteBuffer from an array of floats
+	 * @param arr The array
+	 * @return The newly created FloatBuffer
+	 */
+	public static ByteBuffer makeByteBuffer(byte[] arr) {
+		ByteBuffer bb = ByteBuffer.allocateDirect(arr.length);
+		bb.order(ByteOrder.nativeOrder());
+		bb.put(arr);
+		bb.position(0);
+		return bb;
+	}
+	public static ByteBuffer makeByteBuffer(int size) {
+		ByteBuffer bb = ByteBuffer.allocateDirect(size);
+		bb.position(0);
+		return bb;
+	}
 }

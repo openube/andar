@@ -130,9 +130,13 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
 			jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARException" );  
 			if ( exc != NULL ) 
 				(*env)->ThrowNew( env, exc, "could not read pattern file for object." );
+		} else {
+#ifdef DEBUG_LOGGING
+		__android_log_print(ANDROID_LOG_INFO,"AR native","loaded marker with ID %d from file: %s", newObject->id, cPatternFile);
+#endif
+			//add object to the list
+			list_append(&objects, newObject);
 		}
-		//add object to the list
-		list_append(&objects, newObject);
 	}
 	//release the marker center array
 	(*env)->ReleaseDoubleArrayElements(env, center, centerArr, 0);
@@ -145,10 +149,26 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
  * Method:    removeObject
  * Signature: (I)V
  */
+ //TODO release globalref
 JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_removeObject
   (JNIEnv *env, jobject artoolkit, jint objectID) {
-	list_delete(&objects,&objectID);
-  }
+	if(list_delete(&objects,&objectID) != 0) {
+		//failed to delete -> throw error
+		jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARException" );  
+		if ( exc != NULL ) 
+			(*env)->ThrowNew( env, exc, "could not delete object from native array" );
+	}
+#ifdef DEBUG_LOGGING
+	__android_log_write(ANDROID_LOG_INFO,"AR native","array of objects still containing the following elements:");
+	list_iterator_start(&objects);        /* starting an iteration "session" */
+    while (list_iterator_hasnext(&objects)) { /* tell whether more values available */
+        Object* curObject = (Object *)list_iterator_next(&objects);     /* get the next value */
+		__android_log_print(ANDROID_LOG_INFO,"AR native","name: %s", curObject->name);
+		__android_log_print(ANDROID_LOG_INFO,"AR native","id: %s", curObject->id);
+	}
+    list_iterator_stop(&objects);
+#endif
+}
 
 /*
  * Class:     edu_dhbw_andar_ARToolkit
@@ -314,6 +334,9 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 		 // check for object visibility 
 		k = -1;
 		for( j = 0; j < marker_num; j++ ) {
+#ifdef DEBUG_LOGGING
+			__android_log_print(ANDROID_LOG_INFO,"AR native","marker with id: %d", marker_info[j].id);
+#endif
 			if( curObject->id == marker_info[j].id ) {
 				if( k == -1 ) {
 					k = j;
@@ -332,6 +355,9 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 		if( k == -1 ) {
 			//object not visible
 			(*env)->SetBooleanField(env, curObject->objref, visibleField, JNI_FALSE);
+#ifdef DEBUG_LOGGING
+			__android_log_print(ANDROID_LOG_INFO,"AR native","object %d  not visible, with marker ID %d",curObject->name,curObject->id);
+#endif
 			continue;
 		}
 		//object visible
