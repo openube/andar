@@ -33,7 +33,7 @@ public class CustomActivity extends AndARActivity {
 			("test2", "android.patt", 80.0, new double[]{0,0}, new float[]{1.0f, 1.0f, 0f, 1.0f});
 			CustomObject someOtherObject2 = new CustomObject
 			("test2", "patt.hiro", 80.0, new double[]{0,0}, new float[]{1.0f, 0.0f, 0f, 1.0f});
-			artoolkit.registerARObject(someOtherObject);
+			//artoolkit.registerARObject(someOtherObject);
 			//artoolkit.registerARObject(someOtherObject2);
 			//artoolkit.unregisterARObject(someOtherObject2);
 			artoolkit.registerARObject(someObject);
@@ -70,6 +70,8 @@ public class CustomActivity extends AndARActivity {
 			artoolkit.unregisterARObject(someObject);
 		} else if(item.getItemId()==0) {
 			try {
+				someObject = new CustomObject
+				("test", "patt.hiro", 80.0, new double[]{0,0});
 				artoolkit.registerARObject(someObject);
 			} catch (AndARException e) {
 				e.printStackTrace();

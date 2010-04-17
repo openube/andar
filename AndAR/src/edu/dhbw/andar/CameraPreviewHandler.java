@@ -32,7 +32,9 @@ import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
+import edu.dhbw.andar.exceptions.AndARException;
 import edu.dhbw.andar.interfaces.PreviewFrameSink;
+import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andopenglcam.R;
 
 /**
@@ -50,6 +52,7 @@ import edu.dhbw.andopenglcam.R;
 public class CameraPreviewHandler implements PreviewCallback {
 	private GLSurfaceView glSurfaceView;
 	private PreviewFrameSink frameSink;
+	private ByteBuffer frameBuffer;
 	private CameraConstFPS constFPS = null;
 	private AutoFocusHandler focusHandler = null;
 	private Resources res;
@@ -61,9 +64,6 @@ public class CameraPreviewHandler implements PreviewCallback {
 	//Modes:
 	public final static int MODE_RGB=0;
 	public final static int MODE_GRAY=1;
-	public final static int MODE_BIN=2;
-	public final static int MODE_EDGE=3;
-	public final static int MODE_CONTOUR=4;
 	private int mode = MODE_GRAY;
 	private Object modeLock = new Object();
 	private ARToolkit markerInfo;
@@ -98,35 +98,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 */
 	private native void yuv420sp2rgb(byte[] in, int width, int height, int textureSize, byte[] out);
 
-	/**
-	 * binarize a image
-	 * @param in the input array
-	 * @param width image width
-	 * @param height image height
-	 * @param out the output array
-	 * @param threshold the binarization threshold
-	 */
-	private native void binarize(byte[] in, int width, int height, byte[] out, int threshold);
-	
-	/**
-	 * detect edges in the image
-	 * @param in the image
-	 * @param width image width
-	 * @param height image height
-	 * @param magnitude the magnitude of the edge(width*height bytes)
-	 * @param gradient the gradient(angle) of the edge(width*height bytes)
-	 */
-	private native void detect_edges(byte[] in, int width, int height, byte[] out, int threshold);
 
-	/**
-	 * detect edges in the image
-	 * @param in the image
-	 * @param width image width
-	 * @param height image height
-	 * @param magnitude the magnitude of the edge(width*height bytes)
-	 * @param gradient the gradient(angle) of the edge(width*height bytes)
-	 */
-	private native void detect_edges_simple(byte[] in, int width, int height, byte[] out, int threshold);
 	
 	/**
 	 * the size of the camera preview frame is dynamic
@@ -140,12 +112,17 @@ public class CameraPreviewHandler implements PreviewCallback {
 	public void init(Camera camera) throws Exception {
 		Parameters camParams = camera.getParameters();
 		//check if the pixel format is supported
-		if (camParams.getPreviewFormat() != PixelFormat.YCbCr_420_SP) {
+		if (camParams.getPreviewFormat() == PixelFormat.YCbCr_420_SP)  {
+			setMode(MODE_RGB);
+		} else if (camParams.getPreviewFormat() == PixelFormat.YCbCr_422_SP) {
+			setMode(MODE_GRAY);
+		} else {
 			//Das Format ist semi planar, Erklärung:
 			//semi-planar YCbCr 4:2:2 : two arrays, one with all Ys, one with Cb and Cr. 
 			//Quelle: http://www.celinuxforum.org/CelfPubWiki/AudioVideoGraphicsSpec_R2
-			throw new Exception(res.getString(R.string.error_unkown_pixel_format));
-		}			
+			throw new AndARException(res.getString(R.string.error_unkown_pixel_format));
+		}	
+		setMode(MODE_GRAY);
 		//get width/height of the camera
 		Size previewSize = camParams.getPreviewSize();
 		previewFrameWidth = previewSize.width;
@@ -153,13 +130,12 @@ public class CameraPreviewHandler implements PreviewCallback {
 		textureSize = GenericFunctions.nextPowerOfTwo(Math.max(previewFrameWidth, previewFrameHeight));
 		//frame = new byte[textureSize*textureSize*3];
 		bwSize = previewFrameWidth * previewFrameHeight;
-		frame = new byte[bwSize*3];
+		frame = new byte[bwSize*3];		
 		for (int i = 0; i < frame.length; i++) {
 			frame[i]=(byte) 128;
 		}
+		frameBuffer = GraphicsUtil.makeByteBuffer(frame.length);
 		frameSink.setPreviewFrameSize(textureSize, previewFrameWidth, previewFrameHeight);
-		//default mode:
-		setMode(MODE_RGB);
 		markerInfo.setImageSize(previewFrameWidth, previewFrameHeight);
 		if(Config.USE_ONE_SHOT_PREVIEW) {
 			constFPS  = new CameraConstFPS(5, camera);
@@ -206,15 +182,6 @@ public class CameraPreviewHandler implements PreviewCallback {
 			case MODE_GRAY:
 				frameSink.setMode(GL10.GL_LUMINANCE);
 				break;
-			case MODE_BIN:
-				frameSink.setMode(GL10.GL_LUMINANCE);
-				break;
-			case MODE_EDGE:
-				frameSink.setMode(GL10.GL_LUMINANCE);
-				break;
-			case MODE_CONTOUR:
-				frameSink.setMode(GL10.GL_LUMINANCE);
-				break;
 			}
 		}		
 	}
@@ -255,7 +222,6 @@ public class CameraPreviewHandler implements PreviewCallback {
 				}
 				newFrame = false;
 				Log.d("ConversionWorker","starting conversion");
-				frameSink.getFrameLock().lock();
 				synchronized (modeLock) {
 					switch(mode) {
 					case MODE_RGB:
@@ -263,32 +229,29 @@ public class CameraPreviewHandler implements PreviewCallback {
 						yuv420sp2rgb(curFrame, previewFrameWidth, previewFrameHeight, textureSize, frame);   
 						if(Config.DEBUG)
 							Log.d("ConversionWorker","handing frame over to sink");
-						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+						frameSink.getFrameLock().lock();
+						frameBuffer.position(0);
+						frameBuffer.put(frame);
+						frameBuffer.position(0);
+						frameSink.setNextFrame(frameBuffer);
+						frameSink.getFrameLock().unlock();
 						if(Config.DEBUG)
 							Log.d("ConversionWorker","done converting");
 						break;
 					case MODE_GRAY:
 						//luminace: 
 						//we will copy the array, assigning a new reference will cause multihreading issues
-						//frame = curFrame;//WILL CAUSE PROBLEMS, WHEN SWITCHING BACK TO RGB
-						System.arraycopy(curFrame, 0, frame, 0, bwSize);
-						frameSink.setNextFrame(ByteBuffer.wrap(frame));		
-						break;
-					case MODE_BIN:
-						binarize(curFrame, previewFrameWidth, previewFrameHeight, frame, 100);
-						frameSink.setNextFrame(ByteBuffer.wrap(frame));
-						break;
-					case MODE_EDGE:
-						detect_edges(curFrame, previewFrameWidth, previewFrameHeight, frame,20);
-						frameSink.setNextFrame(ByteBuffer.wrap(frame));
-						break;
-					case MODE_CONTOUR:
-						detect_edges_simple(curFrame, previewFrameWidth, previewFrameHeight, frame,150);
-						frameSink.setNextFrame(ByteBuffer.wrap(frame));
+						//frame = curFrame;//WILL CAUSE PROBLEMS, WHEN SWITCHING BACK TO RGB	
+						frameSink.getFrameLock().lock();
+						frameBuffer.position(0);
+						frameBuffer.put(curFrame,0,bwSize);
+						frameBuffer.position(0);
+						frameSink.setNextFrame(frameBuffer);
+						frameSink.getFrameLock().unlock();
 						break;
 					}
 				}
-				frameSink.getFrameLock().unlock();
+				
 				glSurfaceView.requestRender();
 				if(Config.USE_ONE_SHOT_PREVIEW && CameraPreviewHandler.this.constFPS != null) {
 					//we may get a new frame now.

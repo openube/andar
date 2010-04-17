@@ -84,10 +84,13 @@ public class ARToolkit {
 	 * If it is visible the draw method of the object will be invoked.
 	 * The corresponding translation matrix will be applied inside opengl
 	 * before doing so.
+	 * TODO: registering a object with the same pattern twice will not work, as arloadpatt will create different IDs for the same pattern, and the detecting function will return only the first id as being detected. we need to store patt load id's in an hash -> loadpatt as a native function returning the ID -> pass this id to the object registering function.
 	 * @param arobject The object that shell be registered.
 	 */
 	public synchronized void registerARObject(ARObject arobject) 
-		throws AndARException{		
+		throws AndARException{	
+		if(arobjects.contains(arobject)) 
+			return;//don't register the some object twice
 		try {
 			//transfer pattern file to private space
 			IO.transferFileToPrivateFS(baseFolder,
