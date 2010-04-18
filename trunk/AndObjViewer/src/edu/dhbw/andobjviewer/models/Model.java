@@ -19,8 +19,12 @@
  */
 package edu.dhbw.andobjviewer.models;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Vector;
 
 public class Model implements Serializable{
@@ -32,6 +36,9 @@ public class Model implements Serializable{
     public float ypos = 0;
     public float zpos = 0;
     public float scale = 1f;
+    public int STATE = STATE_DYNAMIC;
+    public static final int STATE_DYNAMIC = 0;
+    public static final int STATE_FINALIZED = 1;
 	
 	private Vector<Group> groups = new Vector<Group>();
 	/**
@@ -54,7 +61,8 @@ public class Model implements Serializable{
 	}
 	
 	public void addGroup(Group grp) {
-		grp.finalize();
+		if(STATE == STATE_FINALIZED)
+			grp.finalize();
 		groups.add(grp);
 	}
 	
@@ -88,6 +96,37 @@ public class Model implements Serializable{
 
 	public void setYpos(float f) {
 		this.ypos += f;
+	}
+	
+	/**
+	 * convert all dynamic arrays to final non alterable ones.
+	 */
+	public void finalize() {
+		if(STATE != STATE_FINALIZED) {
+			STATE = STATE_FINALIZED;
+			for (Iterator iterator = groups.iterator(); iterator.hasNext();) {
+				Group grp = (Group) iterator.next();
+				grp.finalize();
+			}
+			for (Iterator<Material> iterator = materials.values().iterator(); iterator.hasNext();) {
+				Material mtl = iterator.next();
+				mtl.finalize();
+			}
+		}
+	}
+	
+	private void writeObject(ObjectOutputStream oos) throws IOException {
+		if(STATE != STATE_DYNAMIC)
+			throw new IOException("Model may not be finalized when already finalized.");
+		oos.defaultWriteObject(); 
+	}
+
+	private void readObject(ObjectInputStream ois) throws IOException {
+		try {
+			ois.defaultReadObject(); 
+		} catch (ClassNotFoundException e) {
+			throw new IOException("No class found.");
+		}
 	}
 	
 }

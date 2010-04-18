@@ -47,6 +47,7 @@ public class Model3D implements Serializable{
 	
 	public Model3D(Model model) {
 		this.model = model;
+		model.finalize();
 		//separate texture from non textured groups for performance reasons
 		Vector<Group> groups = model.getGroups();
 		Vector<Group> texturedGroups = new Vector<Group>();
