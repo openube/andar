@@ -29,13 +29,13 @@ import edu.dhbw.andobjviewer.util.MemUtil;
 public class Material implements Serializable {
 	//default values:
 	//http://wiki.delphigl.com/index.php/glMaterial
-	//private float[] ambientlightArr = {0.2f, 0.2f, 0.2f, 1.0f};
-	//private float[] diffuselightArr = {0.8f, 0.8f, 0.8f, 1.0f};
-	//private float[] specularlightArr = {0.0f, 0.0f, 0.0f, 1.0f};
+	private float[] ambientlightArr = {0.2f, 0.2f, 0.2f, 1.0f};
+	private float[] diffuselightArr = {0.8f, 0.8f, 0.8f, 1.0f};
+	private float[] specularlightArr = {0.0f, 0.0f, 0.0f, 1.0f};
 	//public access for performance reasons
-	public FloatBuffer ambientlight = MemUtil.makeFloatBuffer(4);
-	public FloatBuffer diffuselight = MemUtil.makeFloatBuffer(4);
-	public FloatBuffer specularlight = MemUtil.makeFloatBuffer(4);
+	public transient FloatBuffer ambientlight = MemUtil.makeFloatBuffer(4);
+	public transient FloatBuffer diffuselight = MemUtil.makeFloatBuffer(4);
+	public transient FloatBuffer specularlight = MemUtil.makeFloatBuffer(4);
 	public float shininess = 0;
 	
 	private Bitmap texture = null;
@@ -62,15 +62,15 @@ public class Material implements Serializable {
 	}
 	
 	public void setAmbient(float[] arr) {
-		copyToBuffer(arr, ambientlight);
+		ambientlightArr = arr;
 	}
 	
 	public void setDiffuse(float[] arr) {
-		copyToBuffer(arr, diffuselight);
+		diffuselightArr = arr;
 	}
 	
 	public void setSpecular(float[] arr) {
-		copyToBuffer(arr, specularlight);
+		specularlightArr = arr;
 	}
 	
 	public void setShininess(float ns) {
@@ -98,33 +98,18 @@ public class Material implements Serializable {
 	public boolean hasTexture() {
 		return this.texture != null;
 	}
-
-	/**
-	 * copies a light describtion from a float array
-	 * to a float buffer.
-	 * 
-	 * @param arr
-	 * @param buff
-	 */
-	private static void copyToBuffer(float[]arr, FloatBuffer buff) {
-		if(arr.length==4) {
-			buff.put(3, arr[3]);
-		} 
-		if(arr.length >=3) {
-			buff.put(0, arr[0]);
-			buff.put(1, arr[1]);
-			buff.put(2, arr[2]);
-		}
-	}
 	
 	/**
 	 * stores the arrays in memory regions accessible by opengl
 	 * must be done before it is being used in opengl code
 	 */
-//	public void finalize() {
-//		ambientlight = MemUtil.makeFloatBuffer(ambientlightArr);
-//		diffuselight = MemUtil.makeFloatBuffer(diffuselightArr);
-//		specularlight = MemUtil.makeFloatBuffer(specularlightArr);
-//	}
+	public void finalize() {
+		ambientlight = MemUtil.makeFloatBuffer(ambientlightArr);
+		diffuselight = MemUtil.makeFloatBuffer(diffuselightArr);
+		specularlight = MemUtil.makeFloatBuffer(specularlightArr);
+		ambientlightArr = null;
+		diffuselightArr = null;
+		specularlightArr = null;
+	}
 	
 }

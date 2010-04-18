@@ -40,9 +40,9 @@ public class Group implements Serializable {
 	 */
 	private boolean textured = false;
 	//access not via getters for performance reasons
-	public  FloatBuffer vertices = null;
-	public  FloatBuffer texcoords = null;
-	public  FloatBuffer normals = null;
+	public transient FloatBuffer vertices = null;
+	public transient FloatBuffer texcoords = null;
+	public transient FloatBuffer normals = null;
 	public int vertexCount = 0;
 	
 	public Vector<Float> groupVertices = new Vector<Float>();
@@ -82,8 +82,7 @@ public class Group implements Serializable {
 	}
 	
 	/**
-	 * stores the dynamic arrays into static ones, and frees the memory
-	 * of the dynamic ones
+	 *  convert all dynamic arrays to final non alterable ones.
 	 */
 	public void finalize() {
 		if (groupTexcoords.size() > 0) {

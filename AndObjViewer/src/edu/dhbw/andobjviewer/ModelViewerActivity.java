@@ -22,31 +22,33 @@ package edu.dhbw.andobjviewer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Vector;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.opengl.GLSurfaceView;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
 import edu.dhbw.andobjviewer.graphics.Model3D;
 import edu.dhbw.andobjviewer.graphics.Renderer;
 import edu.dhbw.andobjviewer.models.Model;
 import edu.dhbw.andobjviewer.parser.ObjParser;
 import edu.dhbw.andobjviewer.parser.ParseException;
 import edu.dhbw.andobjviewer.util.FileUtil;
-import android.app.Activity;
-import android.content.Intent;
-import android.content.res.Resources;
-import android.opengl.GLSurfaceView;
-import android.os.Bundle;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnTouchListener;
-import android.widget.Toast;
 
 /**
  * loads a 3D Model and displays it
@@ -87,31 +89,66 @@ public class ModelViewerActivity extends Activity{
 		if(savedInstanceState != null) {
     		model = (Model) savedInstanceState.getSerializable("model");
     	}
-		this.res = this.getResources();
-		Intent intent = getIntent();
-		File modelFile =  new File(URI.create(intent.getDataString()));
+		
+		//create a wait dialog
+		ProgressDialog waitDialog = ProgressDialog.show(this, "", 
+                getResources().getText(R.string.loading), true);
+		waitDialog.show();
 		
 		//create the opengl view
 		modelView = new GLSurfaceView(this);
 		
-		
 		Vector<Model3D> models = new Vector<Model3D>();
+		
+		//read the model file:
+		this.res = this.getResources();
+		Intent intent = getIntent();
+		File modelFile =  new File(URI.create(intent.getDataString()));
+		
 		FileUtil fileUtil = new FileUtil();
 		fileUtil.setBaseFolder(modelFile.getParentFile());
-		ObjParser parser = new ObjParser(fileUtil);
-		try {
-			model = parser.parse("Model", new BufferedReader(
-					new FileReader(modelFile)));
-			models.add(new Model3D(model));
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
-			e.printStackTrace();
+		
+		if(modelFile.getAbsolutePath().endsWith(".obj")) {
+			ObjParser parser = new ObjParser(fileUtil);
+			try {
+				model = parser.parse("Model", new BufferedReader(
+						new FileReader(modelFile)));
+				if(!new File(modelFile.getAbsolutePath()+".andar").exists()) {
+					FileOutputStream fos = new FileOutputStream( modelFile.getAbsolutePath()+".andar" ); 
+					ObjectOutputStream o = new ObjectOutputStream( fos );
+					o.writeObject(model);
+					fos.close();
+				}
+				
+				models.add(new Model3D(model));
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		} else if(modelFile.getAbsolutePath().endsWith(".andar")) {
+			try {
+				FileInputStream fis = new FileInputStream(modelFile);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				model = (Model) ois.readObject();
+				fis.close();
+				models.add(new Model3D(model));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (StreamCorruptedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 		renderer = new Renderer(models);
 		modelView.setRenderer(renderer);
 		modelView.setOnTouchListener(new TouchEventHandler());
-		setContentView(modelView);		
+		setContentView(modelView);
+		
+		waitDialog.dismiss();
 	}
 	
 	/* (non-Javadoc)
