@@ -92,12 +92,14 @@ public class MtlParser {
 						//limited texture support
 						String imageFileName = line.substring(8);
 						//für resources:Bitmap mBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.pic1);
-						curMat.setTexture(fileUtil.getBitmapFromName(imageFileName));
+						curMat.setFileUtil(fileUtil);
+						curMat.setBitmapFileName(imageFileName);
 					} else if(line.startsWith(" mapKd ")) {
 						//limited texture support
 						String imageFileName = line.substring(7);
 						//für resources:Bitmap mBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.pic1);
-						curMat.setTexture(fileUtil.getBitmapFromName(imageFileName));
+						curMat.setFileUtil(fileUtil);
+						curMat.setBitmapFileName(imageFileName);
 					}
 				}
 			}

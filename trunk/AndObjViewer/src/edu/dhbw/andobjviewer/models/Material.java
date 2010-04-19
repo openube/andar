@@ -24,6 +24,9 @@ import java.nio.FloatBuffer;
 
 import android.graphics.Bitmap;
 
+import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferMaterial;
+import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferModel;
+import edu.dhbw.andobjviewer.util.FileUtil;
 import edu.dhbw.andobjviewer.util.MemUtil;
 
 public class Material implements Serializable {
@@ -37,10 +40,16 @@ public class Material implements Serializable {
 	public transient FloatBuffer diffuselight = MemUtil.makeFloatBuffer(4);
 	public transient FloatBuffer specularlight = MemUtil.makeFloatBuffer(4);
 	public float shininess = 0;
+	public int STATE = STATE_DYNAMIC;
+    public static final int STATE_DYNAMIC = 0;
+    public static final int STATE_FINALIZED = 1;
 	
 	private Bitmap texture = null;
+	private String bitmapFileName = null;
+	private FileUtil fileUtil = null;
 	
 	private String name;
+	
 	
 	public Material(String name) {
 		this.name = name;
@@ -61,6 +70,19 @@ public class Material implements Serializable {
 		this.name = name;
 	}
 	
+	
+	public void setFileUtil(FileUtil fileUtil) {
+		this.fileUtil = fileUtil;
+	}
+
+	public String getBitmapFileName() {
+		return bitmapFileName;
+	}
+
+	public void setBitmapFileName(String bitmapFileName) {
+		this.bitmapFileName = bitmapFileName;
+	}
+
 	public void setAmbient(float[] arr) {
 		ambientlightArr = arr;
 	}
@@ -96,7 +118,12 @@ public class Material implements Serializable {
 	}
 	
 	public boolean hasTexture() {
-		return this.texture != null;
+		if(STATE == STATE_DYNAMIC) 
+			return this.bitmapFileName != null;
+		else if(STATE == STATE_FINALIZED)
+				return this.texture != null;
+		else 
+			return false;
 	}
 	
 	/**
@@ -110,6 +137,18 @@ public class Material implements Serializable {
 		ambientlightArr = null;
 		diffuselightArr = null;
 		specularlightArr = null;
+		if(fileUtil != null && bitmapFileName != null) {
+			texture = fileUtil.getBitmapFromName(bitmapFileName);
+		}
+	}
+	
+	/*
+	 * get  a google protocol buffers builder, that may be serialized
+	 */
+	public BufferMaterial getProtocolBuffer() {
+		ModelProtocolBuffer.BufferMaterial.Builder builder = ModelProtocolBuffer.BufferMaterial.newBuilder();
+		
+		return builder.build();
 	}
 	
 }
