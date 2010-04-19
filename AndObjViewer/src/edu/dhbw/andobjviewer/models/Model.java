@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
+import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferModel;
+
 public class Model implements Serializable{
 	//position/rotation/scale
 	public float xrot = 0;
@@ -115,18 +117,13 @@ public class Model implements Serializable{
 		}
 	}
 	
-	private void writeObject(ObjectOutputStream oos) throws IOException {
-		if(STATE != STATE_DYNAMIC)
-			throw new IOException("Model may not be finalized when already finalized.");
-		oos.defaultWriteObject(); 
-	}
-
-	private void readObject(ObjectInputStream ois) throws IOException {
-		try {
-			ois.defaultReadObject(); 
-		} catch (ClassNotFoundException e) {
-			throw new IOException("No class found.");
-		}
+	/*
+	 * get  a google protocol buffers builder, that may be serialized
+	 */
+	public BufferModel getProtocolBuffer() {
+		ModelProtocolBuffer.BufferModel.Builder builder = ModelProtocolBuffer.BufferModel.newBuilder();
+		
+		return builder.build();
 	}
 	
 }

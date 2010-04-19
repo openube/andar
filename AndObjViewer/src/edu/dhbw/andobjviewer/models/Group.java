@@ -25,6 +25,8 @@ import java.nio.FloatBuffer;
 import java.util.Iterator;
 import java.util.Vector;
 
+import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferGroup;
+import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferMaterial;
 import edu.dhbw.andobjviewer.util.MemUtil;
 
 /**
@@ -116,4 +118,14 @@ public class Group implements Serializable {
 		vertices.position(0);
 		normals.position(0);		
 	}
+	
+	/*
+	 * get  a google protocol buffers builder, that may be serialized
+	 */
+	public BufferGroup getProtocolBuffer() {
+		ModelProtocolBuffer.BufferGroup.Builder builder = ModelProtocolBuffer.BufferGroup.newBuilder();
+		
+		return builder.build();
+	}
+	
 }
