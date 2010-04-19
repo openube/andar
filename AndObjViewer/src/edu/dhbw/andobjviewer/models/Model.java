@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
-import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferModel;
+import edu.dhbw.andobjviewer.util.FileUtil;
 
 public class Model implements Serializable{
 	//position/rotation/scale
@@ -41,6 +41,7 @@ public class Model implements Serializable{
     public int STATE = STATE_DYNAMIC;
     public static final int STATE_DYNAMIC = 0;
     public static final int STATE_FINALIZED = 1;
+    
 	
 	private Vector<Group> groups = new Vector<Group>();
 	/**
@@ -72,6 +73,12 @@ public class Model implements Serializable{
 		return groups;
 	}
 	
+	public void setFileUtil(FileUtil fileUtil) {
+		for (Iterator iterator = materials.values().iterator(); iterator.hasNext();) {
+			Material mat = (Material) iterator.next();
+			mat.setFileUtil(fileUtil);
+		}
+	}
 	
 	
 	public HashMap<String, Material> getMaterials() {
@@ -109,6 +116,7 @@ public class Model implements Serializable{
 			for (Iterator iterator = groups.iterator(); iterator.hasNext();) {
 				Group grp = (Group) iterator.next();
 				grp.finalize();
+				grp.setMaterial(materials.get(grp.getMaterialName()));
 			}
 			for (Iterator<Material> iterator = materials.values().iterator(); iterator.hasNext();) {
 				Material mtl = iterator.next();
@@ -120,10 +128,10 @@ public class Model implements Serializable{
 	/*
 	 * get  a google protocol buffers builder, that may be serialized
 	 */
-	public BufferModel getProtocolBuffer() {
+	/*public BufferModel getProtocolBuffer() {
 		ModelProtocolBuffer.BufferModel.Builder builder = ModelProtocolBuffer.BufferModel.newBuilder();
 		
 		return builder.build();
-	}
+	}*/
 	
 }
