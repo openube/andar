@@ -20,13 +20,16 @@
 package edu.dhbw.andobjviewer.graphics;
 
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.opengl.GLDebugHelper;
 import android.opengl.GLUtils;
+import android.util.Log;
 
 import edu.dhbw.andobjviewer.models.Group;
 import edu.dhbw.andobjviewer.models.Material;
@@ -85,7 +88,9 @@ public class Model3D implements Serializable{
 		//transfer vertices to video memory
 	}
 	
+	private Writer log = new LogWriter();
 	public void draw(GL10 gl) {
+		//gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
 		//do positioning:
 		gl.glScalef(model.scale, model.scale, model.scale);
 		gl.glTranslatef(model.xpos, model.ypos, model.zpos);
@@ -139,5 +144,43 @@ public class Model3D implements Serializable{
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL10.GL_NORMAL_ARRAY);
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+	}
+	/**
+	 * write stuff to Android log
+	 * @author Tobias Domhan
+	 *
+	 */
+	class LogWriter extends Writer {
+
+	    @Override public void close() {
+	        flushBuilder();
+	    }
+
+	    @Override public void flush() {
+	        flushBuilder();
+	    }
+
+	    @Override public void write(char[] buf, int offset, int count) {
+	        for(int i = 0; i < count; i++) {
+	            char c = buf[offset + i];
+	            if ( c == '\n') {
+	                flushBuilder();
+	            }
+	            else {
+	                mBuilder.append(c);
+	            }
+	        }
+	    }
+
+	    private void flushBuilder() {
+	        if (mBuilder.length() > 0) {
+	            Log.e("OpenGLCam", mBuilder.toString());
+	            mBuilder.delete(0, mBuilder.length());
+	        }
+	    }
+
+	    private StringBuilder mBuilder = new StringBuilder();
+	    
+	    
 	}
 }

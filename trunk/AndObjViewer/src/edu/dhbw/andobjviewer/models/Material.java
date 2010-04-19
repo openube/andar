@@ -24,8 +24,7 @@ import java.nio.FloatBuffer;
 
 import android.graphics.Bitmap;
 
-import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferMaterial;
-import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferModel;
+import edu.dhbw.andobjviewer.util.ArrayIterator;
 import edu.dhbw.andobjviewer.util.FileUtil;
 import edu.dhbw.andobjviewer.util.MemUtil;
 
@@ -44,12 +43,15 @@ public class Material implements Serializable {
     public static final int STATE_DYNAMIC = 0;
     public static final int STATE_FINALIZED = 1;
 	
-	private Bitmap texture = null;
+	private transient Bitmap texture = null;
 	private String bitmapFileName = null;
-	private FileUtil fileUtil = null;
+	private transient FileUtil fileUtil = null;
 	
-	private String name;
+	private String name = "defaultMaterial";
 	
+	public Material() {
+		
+	}
 	
 	public Material(String name) {
 		this.name = name;
@@ -145,10 +147,10 @@ public class Material implements Serializable {
 	/*
 	 * get  a google protocol buffers builder, that may be serialized
 	 */
-	public BufferMaterial getProtocolBuffer() {
+	/*public BufferMaterial getProtocolBuffer() {
 		ModelProtocolBuffer.BufferMaterial.Builder builder = ModelProtocolBuffer.BufferMaterial.newBuilder();
-		
+		builder.setName(name);
 		return builder.build();
-	}
+	}*/
 	
 }

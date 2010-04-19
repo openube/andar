@@ -25,8 +25,6 @@ import java.nio.FloatBuffer;
 import java.util.Iterator;
 import java.util.Vector;
 
-import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferGroup;
-import edu.dhbw.andobjviewer.models.ModelProtocolBuffer.BufferMaterial;
 import edu.dhbw.andobjviewer.util.MemUtil;
 
 /**
@@ -36,7 +34,7 @@ import edu.dhbw.andobjviewer.util.MemUtil;
  */
 public class Group implements Serializable {
 	private String materialName = "default";
-	private Material material;
+	private transient Material material;
 	/**
 	 * is there a texture associated with this group?
 	 */
@@ -50,6 +48,9 @@ public class Group implements Serializable {
 	public Vector<Float> groupVertices = new Vector<Float>();
 	public Vector<Float> groupNormals = new Vector<Float>();
 	public Vector<Float> groupTexcoords = new Vector<Float>();
+	
+	public Group() {
+	}
 	
 	public void setMaterialName(String currMat) {
 		this.materialName = currMat;
@@ -72,7 +73,12 @@ public class Group implements Serializable {
 	}
 
 	public boolean containsVertices() {
-		return groupVertices.size()>0;
+		if(groupVertices != null)
+			return groupVertices.size()>0;
+		else if(vertices != null)
+			return vertices.capacity()>0;
+		else 
+			return false;
 	}
 	
 	public void setTextured(boolean b) {
@@ -122,10 +128,10 @@ public class Group implements Serializable {
 	/*
 	 * get  a google protocol buffers builder, that may be serialized
 	 */
-	public BufferGroup getProtocolBuffer() {
+	/*public BufferGroup getProtocolBuffer() {
 		ModelProtocolBuffer.BufferGroup.Builder builder = ModelProtocolBuffer.BufferGroup.newBuilder();
 		
 		return builder.build();
-	}
+	}*/
 	
 }
