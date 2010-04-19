@@ -34,6 +34,7 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
+import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.Parameters;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
@@ -55,6 +56,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	private boolean mPreviewing = false;
 	private boolean mPausing = false;
 	private ARToolkit artoolkit;
+	private AutoFocusHandler focusHandler = null;
 
 	
     /** Called when the activity is first created. */
@@ -82,8 +84,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         glSurfaceView.getHolder().addCallback(this);
         setContentView(glSurfaceView);
-        if(Config.DEBUG)
-        	Debug.startMethodTracing("AndAR");
+        //if(Config.DEBUG)
+        //	Debug.startMethodTracing("AndAR");
     }
     
     
@@ -124,8 +126,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     @Override
     protected void onDestroy() {
     	super.onDestroy();
-    	if(Config.DEBUG)
-    		Debug.stopMethodTracing();
+    	//if(Config.DEBUG)
+    	//	Debug.stopMethodTracing();
     }
     
     
@@ -151,7 +153,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     		camera = CameraHolder.instance().open();
     		
 	        Parameters params = camera.getParameters();
-	        params.setPreviewSize(240,160);
+	        //params.setPreviewSize(240,160);
 	        
 	        //try to set the preview format
 	        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
@@ -169,10 +171,14 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	        } /*else {
 	        	camera.setOneShotPreviewCallback(cameraHandler);
 	        }*/
-	        try {
+			try {
 				cameraHandler.init(camera);
 			} catch (Exception e) {
-				//TODO: notify the user
+				e.printStackTrace();
+			}
+			if(focusHandler == null) {
+				focusHandler = new AutoFocusHandler(camera);
+				focusHandler.start();
 			}
     	}
     }
@@ -232,6 +238,34 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 
 	public ARToolkit getArtoolkit() {
 		return artoolkit;
+	}
+	
+	class AutoFocusHandler extends Thread implements AutoFocusCallback {
+			
+		private Camera camera;
+		
+		public AutoFocusHandler(Camera camera) {
+			this.camera = camera;
+		}
+		
+		@Override
+		public void run() {
+			super.run();
+			while(true) {
+				if(mPreviewing)
+					camera.autoFocus(this);
+				try {
+					Thread.sleep(20000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		@Override
+		public void onAutoFocus(boolean arg0, Camera arg1) {
+			
+		}
 	}
 	
 	
