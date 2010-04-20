@@ -76,7 +76,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 			e.printStackTrace();
 			throw new AndARRuntimeException(e.getMessage());
 		}
-        glSurfaceView = new OpenGLCamView(this);
+        //glSurfaceView = new GLSurfaceView(this);
+        glSurfaceView = new GLSurfaceView(this);
 		renderer = new AndARRenderer(res, artoolkit, this);
 		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, artoolkit, camStatus);
         glSurfaceView.setRenderer(renderer);
@@ -124,7 +125,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     
     @Override
     protected void onDestroy() {
-    	super.onDestroy();
+    	super.onDestroy();    	
     	//if(Config.DEBUG)
     	//	Debug.stopMethodTracing();
     }
@@ -160,11 +161,11 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	        camera.setParameters(params);
 	        if (Integer.parseInt(Build.VERSION.SDK) <= 4) {
 	        	//for android 1.5 compatibilty reasons:
-				 /*try {
+				 try {
 				    camera.setPreviewDisplay(glSurfaceView.getHolder());
 				 } catch (IOException e1) {
 				        e1.printStackTrace();
-				 }*/
+				 }
 	        }
 	        if(!Config.USE_ONE_SHOT_PREVIEW) {
 	        	camera.setPreviewCallback(cameraHandler);	 
@@ -198,9 +199,10 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     
     private void stopPreview() {
     	if (camera != null && camStatus.previewing ) {
+    		camStatus.previewing = false;
             camera.stopPreview();
-        }
-    	camStatus.previewing = false;
+         }
+    	
     }
 
 	/* The GLSurfaceView changed
@@ -209,6 +211,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
+		System.out.println("");
 	}
 
 	/* The GLSurfaceView was created
