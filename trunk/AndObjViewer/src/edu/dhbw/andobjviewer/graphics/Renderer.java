@@ -19,6 +19,8 @@
  */
 package edu.dhbw.andobjviewer.graphics;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -40,8 +42,7 @@ import android.util.Log;
  */
 public class Renderer implements GLSurfaceView.Renderer {
 	
-	private final Model3D[] models;
-	private final int modelCount;
+	private final Vector<Model3D> models;
 	private final Vector3D cameraPosition = new Vector3D(0, 3, 50);
 	
 	// FPS stuff
@@ -49,10 +50,15 @@ public class Renderer implements GLSurfaceView.Renderer {
 	//end FPS stuff
 	
 	public Renderer(Vector<Model3D> models) {
-		this.models = models.toArray(new Model3D[models.size()]);
-		modelCount = this.models.length;
+		this.models = models;
 	}
-
+	
+	public void addModel(Model3D model) {
+		if(!models.contains(model)) {
+			models.add(model);
+		}
+	}
+	
 	@Override
 	public void onDrawFrame(GL10 gl) {
 		if(ModelViewerActivity.DEBUG) {
@@ -69,9 +75,9 @@ public class Renderer implements GLSurfaceView.Renderer {
 		gl.glLoadIdentity();
 		GLU.gluLookAt(gl, cameraPosition.x, cameraPosition.y, cameraPosition.z,
 				0, 0, 0, 0, 1, 0);
-		
-		for (int i = 0; i < modelCount; i++) {
-			models[i].draw(gl);
+		for (Iterator<Model3D> iterator = models.iterator(); iterator.hasNext();) {
+			Model3D model = iterator.next();
+			model.draw(gl);
 		}
 	}
 
@@ -87,7 +93,7 @@ public class Renderer implements GLSurfaceView.Renderer {
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		gl.glClearColor(0,0,0,0);
+		gl.glClearColor(1,1,1,1);
 		
 		gl.glClearDepthf(1.0f);
 		gl.glEnable(GL10.GL_DEPTH_TEST);
@@ -111,8 +117,9 @@ public class Renderer implements GLSurfaceView.Renderer {
 		gl.glEnable(GL10.GL_LIGHT0);
 		
 		//initialize the models
-		for (int i = 0; i < modelCount; i++) {
-			models[i].init(gl);
+		for (Iterator<Model3D> iterator = models.iterator(); iterator.hasNext();) {
+			Model3D model = iterator.next();
+			model.init(gl);
 		}
 		
 	}
