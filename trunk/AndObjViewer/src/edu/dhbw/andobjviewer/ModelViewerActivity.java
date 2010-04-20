@@ -20,15 +20,12 @@
 package edu.dhbw.andobjviewer;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StreamCorruptedException;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Vector;
 
 import android.app.Activity;
@@ -36,6 +33,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.opengl.GLSurfaceView;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Debug;
 import android.view.Menu;
@@ -43,19 +41,12 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.ObjectBuffer;
-import com.esotericsoftware.kryo.compress.DeflateCompressor;
-import com.esotericsoftware.kryo.serialize.FieldSerializer;
-
 import edu.dhbw.andobjviewer.graphics.Model3D;
 import edu.dhbw.andobjviewer.graphics.Renderer;
-import edu.dhbw.andobjviewer.models.Group;
-import edu.dhbw.andobjviewer.models.Material;
 import edu.dhbw.andobjviewer.models.Model;
 import edu.dhbw.andobjviewer.parser.ObjParser;
 import edu.dhbw.andobjviewer.parser.ParseException;
+import edu.dhbw.andobjviewer.parser.Util;
 import edu.dhbw.andobjviewer.util.FileUtil;
 
 /**
@@ -66,14 +57,9 @@ import edu.dhbw.andobjviewer.util.FileUtil;
  *
  */
 public class ModelViewerActivity extends Activity{
-	/**
-	 * Constants:
-	 */
-	private final int TOAST_TIMEOUT = 3;
 	
 	private GLSurfaceView modelView;
 	private Renderer renderer;
-	private Model3D model3D;
 	private Model model;
 	
 	public static final boolean DEBUG = true;
@@ -84,6 +70,8 @@ public class ModelViewerActivity extends Activity{
 	private final int MENU_TRANSLATE = 2;
 	
 	private int mode = MENU_TRANSLATE;
+	ProgressDialog waitDialog;
+	Vector<Model3D> models = new Vector<Model3D>();
 
 	
 	private Resources res;
@@ -94,84 +82,14 @@ public class ModelViewerActivity extends Activity{
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);		
-		if(savedInstanceState != null) {
-    		model = (Model) savedInstanceState.getSerializable("model");
-    	}
 		
 		//create a wait dialog
-		ProgressDialog waitDialog = ProgressDialog.show(this, "", 
+		waitDialog = ProgressDialog.show(this, "", 
                 getResources().getText(R.string.loading), true);
 		waitDialog.show();
-		
-		//create the opengl view
-		modelView = new GLSurfaceView(this);
-		
-		Vector<Model3D> models = new Vector<Model3D>();
-		
-		/*Kryo kryo = new Kryo();
-		kryo.register(float[].class, new DeflateCompressor(new FieldSerializer(kryo, float[].class)));
-		kryo.register(Vector.class, new DeflateCompressor(new FieldSerializer(kryo, Vector.class)));
-		kryo.register(Group.class, new DeflateCompressor(new FieldSerializer(kryo, Group.class)));
-		kryo.register(Material.class, new DeflateCompressor(new FieldSerializer(kryo, Material.class)));
-		kryo.register(Model.class, new DeflateCompressor(new FieldSerializer(kryo, Model.class)));
-		kryo.register(HashMap.class, new DeflateCompressor(new FieldSerializer(kryo, HashMap.class)));*/
-		Kryo kryo = new Kryo();
-		kryo.register(float[].class);
-		kryo.register(Vector.class);
-		kryo.register(Group.class);
-		kryo.register(Material.class);
-		kryo.register(Model.class);
-		kryo.register(HashMap.class);
-		
-		//read the model file:
-		this.res = this.getResources();
-		Intent intent = getIntent();
-		File modelFile =  new File(URI.create(intent.getDataString()));
-		
-		FileUtil fileUtil = new FileUtil();
-		fileUtil.setBaseFolder(modelFile.getParentFile());
-		
-		if(modelFile.getAbsolutePath().endsWith(".obj")) {
-			ObjParser parser = new ObjParser(fileUtil);
-			try {
-				Debug.startMethodTracing("AndObjViewer");
-				model = parser.parse("Model", new BufferedReader(
-						new FileReader(modelFile)));
-				Debug.stopMethodTracing();
-				if(!new File(modelFile.getAbsolutePath()+".andar").exists()) {
-					FileOutputStream fos = new FileOutputStream( modelFile.getAbsolutePath()+".andar" ); 
-					ObjectBuffer buffer = new ObjectBuffer(kryo);
-					buffer.writeObject(fos, model);
-					fos.close();
-				}
-				models.add(new Model3D(model));
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
-		} else if(modelFile.getAbsolutePath().endsWith(".andar")) {
-			try {
-				FileInputStream fis = new FileInputStream(modelFile);
-				ObjectBuffer buffer = new ObjectBuffer(kryo);
-				model = buffer.readObject(fis, Model.class);
-				fis.close();
-				model.setFileUtil(fileUtil);
-				models.add(new Model3D(model));
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (StreamCorruptedException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		if(model == null) {
+			new ModelLoader().execute();
 		}
-		renderer = new Renderer(models);
-		modelView.setRenderer(renderer);
-		modelView.setOnTouchListener(new TouchEventHandler());
-		setContentView(modelView);
-		
-		waitDialog.dismiss();
 	}
 	
 	/* (non-Javadoc)
@@ -180,7 +98,8 @@ public class ModelViewerActivity extends Activity{
 	@Override
 	protected void onResume() {
 		super.onResume();
-		modelView.onResume();
+		if(modelView != null)
+			modelView.onResume();
 	}
 	
 	/* (non-Javadoc)
@@ -189,7 +108,8 @@ public class ModelViewerActivity extends Activity{
 	@Override
 	protected void onPause() {
 		super.onPause();
-		modelView.onPause();
+		if(modelView != null)
+			modelView.onPause();
 	}
     
     
@@ -278,11 +198,11 @@ public class ModelViewerActivity extends Activity{
 					if(model != null) {
 						switch(mode) {
 							case MENU_SCALE:
-								model.setScale(dY/100);
+								model.setScale(dY/-100);
 					            break;
 					        case MENU_ROTATE:
-					        	model.setXrot(dY);//dY-> Rotation um die X-Achse
-								model.setYrot(dX);//dX-> Rotation um die Y-Achse
+					        	model.setXrot(-1*dY);//dY-> Rotation um die X-Achse
+								model.setYrot(-1*dX);//dX-> Rotation um die Y-Achse
 					            break;
 					        case MENU_TRANSLATE:
 					        	model.setXpos(dX/-100f);
@@ -301,6 +221,58 @@ public class ModelViewerActivity extends Activity{
 			return true;
 		}
     	
+    }
+    
+    private class ModelLoader extends AsyncTask<Void, Void, Void> {
+    	@Override
+    	protected Void doInBackground(Void... params) {
+    		//read the model file:
+			res = getResources();
+			Intent intent = getIntent();
+			File modelFile =  new File(URI.create(intent.getDataString()));
+			
+			FileUtil fileUtil = new FileUtil();
+			fileUtil.setBaseFolder(modelFile.getParentFile());
+			
+			if(modelFile.getAbsolutePath().endsWith(".obj")) {
+				ObjParser parser = new ObjParser(fileUtil);
+				try {
+					Debug.startMethodTracing("AndObjViewer");
+					BufferedReader modelFileReader = new BufferedReader(new FileReader(modelFile));
+					String shebang = modelFileReader.readLine();				
+					if(!shebang.equals("#trimmed")) {
+						//trim the file:			
+						File trimmedFile = new File(modelFile.getAbsolutePath()+".tmp");
+						BufferedWriter trimmedFileWriter = new BufferedWriter(new FileWriter(trimmedFile));
+						Util.trim(modelFileReader, trimmedFileWriter);
+						if(modelFile.delete()) {
+							trimmedFile.renameTo(modelFile);
+							modelFile =  new File(URI.create(intent.getDataString()));
+						}					
+					}
+					model = parser.parse("Model", new BufferedReader(new FileReader(modelFile)));
+					models.add(new Model3D(model));
+					Debug.stopMethodTracing();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+    		return null;
+    	}
+    	@Override
+    	protected void onPostExecute(Void result) {
+    		super.onPostExecute(result);
+    		waitDialog.dismiss();
+    		//create the opengl view
+    		modelView = new GLSurfaceView(ModelViewerActivity.this);	
+    		    		
+    		renderer = new Renderer(models);
+    		modelView.setRenderer(renderer);
+    		modelView.setOnTouchListener(new TouchEventHandler());
+    		setContentView(modelView);
+    	}
     }
     
 }
