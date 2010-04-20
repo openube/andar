@@ -248,7 +248,7 @@ public class ARToolkit {
 		 */
 		@Override
 		public synchronized void run() {			
-			
+			setName("DetectMarkerWorker");
 			while(true) {
 				while(!newFrame) {
 					//spurious wakeups

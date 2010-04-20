@@ -254,14 +254,14 @@ public class CameraPreviewHandler implements PreviewCallback {
 						break;
 					}
 				}
-				
-				glSurfaceView.requestRender();
 				if(Config.USE_ONE_SHOT_PREVIEW && CameraPreviewHandler.this.constFPS != null) {
 					//we may get a new frame now.
 					synchronized(CameraPreviewHandler.this.constFPS) {
 						CameraPreviewHandler.this.constFPS.notify();
 					}					
 				}
+				glSurfaceView.requestRender();
+				yield();
 			}
 		}
 		
@@ -303,8 +303,13 @@ public class CameraPreviewHandler implements PreviewCallback {
 				try {
 					wait(waitTime);
 				} catch (InterruptedException e) {}
-				if(camStatus.previewing)
-					cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
+				if(camStatus.previewing) {
+					try {
+						cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
+					} catch(RuntimeException ex) {
+						//
+					}
+				}
 			}			
 		}
 	}
@@ -318,17 +323,18 @@ public class CameraPreviewHandler implements PreviewCallback {
 		}
 		
 		@Override
-		public void run() {
+		public synchronized void run() {
 			super.run();
 			setName("Autofocus handler");
 			while(true) {
 				if(camStatus.previewing)
 					camera.autoFocus(this);
 				try {
-					Thread.sleep(20000);
+					wait(20000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+				yield();
 			}
 		}
 
