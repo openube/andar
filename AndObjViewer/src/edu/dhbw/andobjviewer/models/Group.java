@@ -22,6 +22,7 @@ package edu.dhbw.andobjviewer.models;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -45,9 +46,9 @@ public class Group implements Serializable {
 	public transient FloatBuffer normals = null;
 	public int vertexCount = 0;
 	
-	public Vector<Float> groupVertices = new Vector<Float>();
-	public Vector<Float> groupNormals = new Vector<Float>();
-	public Vector<Float> groupTexcoords = new Vector<Float>();
+	public ArrayList<Float> groupVertices = new ArrayList<Float>(500);
+	public ArrayList<Float> groupNormals = new ArrayList<Float>(500);
+	public ArrayList<Float> groupTexcoords = new ArrayList<Float>();
 	
 	public Group() {
 	}
@@ -96,9 +97,9 @@ public class Group implements Serializable {
 		if (groupTexcoords.size() > 0) {
 			textured = true;
 			texcoords = MemUtil.makeFloatBuffer(groupTexcoords.size());
-			for (Iterator iterator = groupTexcoords.iterator(); iterator.hasNext();) {
-				Float curVal = (Float) iterator.next();
-				texcoords.put(curVal.floatValue());
+			for (Iterator<Float> iterator = groupTexcoords.iterator(); iterator.hasNext();) {
+				Float curVal = iterator.next();
+				texcoords.put(curVal.floatValue());				
 			}
 			texcoords.position(0);
 			if(material != null && material.hasTexture()) {
@@ -108,15 +109,15 @@ public class Group implements Serializable {
 		groupTexcoords = null;
 		vertices = MemUtil.makeFloatBuffer(groupVertices.size());
 		vertexCount = groupVertices.size()/3;//three floats pers vertex
-		for (Iterator iterator = groupVertices.iterator(); iterator.hasNext();) {
-			Float curVal = (Float) iterator.next();
+		for (Iterator<Float> iterator = groupVertices.iterator(); iterator.hasNext();) {
+			Float curVal = iterator.next();
 			vertices.put(curVal.floatValue());
 		}
 		//let the garbage collector free the memory
 		groupVertices = null;
 		normals = MemUtil.makeFloatBuffer(groupNormals.size());
-		for (Iterator iterator = groupNormals.iterator(); iterator.hasNext();) {
-			Float curVal = (Float) iterator.next();
+		for (Iterator<Float> iterator = groupNormals.iterator(); iterator.hasNext();) {
+			Float curVal =  iterator.next();
 			normals.put(curVal.floatValue());
 		}
 		//let the garbage collector free the memory

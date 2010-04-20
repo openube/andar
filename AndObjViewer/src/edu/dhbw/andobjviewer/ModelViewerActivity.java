@@ -237,7 +237,8 @@ public class ModelViewerActivity extends Activity{
 			if(modelFile.getAbsolutePath().endsWith(".obj")) {
 				ObjParser parser = new ObjParser(fileUtil);
 				try {
-					Debug.startMethodTracing("AndObjViewer");
+					if(Config.DEBUG)
+						Debug.startMethodTracing("AndObjViewer");
 					BufferedReader modelFileReader = new BufferedReader(new FileReader(modelFile));
 					String shebang = modelFileReader.readLine();				
 					if(!shebang.equals("#trimmed")) {
@@ -252,7 +253,8 @@ public class ModelViewerActivity extends Activity{
 					}
 					model = parser.parse("Model", new BufferedReader(new FileReader(modelFile)));
 					models.add(new Model3D(model));
-					Debug.stopMethodTracing();
+					if(Config.DEBUG)
+						Debug.stopMethodTracing();
 				} catch (IOException e) {
 					e.printStackTrace();
 				} catch (ParseException e) {

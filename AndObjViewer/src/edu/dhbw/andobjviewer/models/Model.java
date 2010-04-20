@@ -87,8 +87,8 @@ public class Model implements Serializable{
 
 	public void setScale(float f) {
 		this.scale += f;
-		if(this.scale < 0.01f)
-			this.scale = 0.01f;
+		if(this.scale < 0.0001f)
+			this.scale = 0.0001f;
 	}
 
 	public void setXrot(float dY) {

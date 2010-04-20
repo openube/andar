@@ -142,7 +142,7 @@ public class ObjParser {
 						float[] vec;
 						try {
 							vec = vertices.get(vertexID);
-						} catch (ArrayIndexOutOfBoundsException ex) {
+						} catch (IndexOutOfBoundsException ex) {
 							throw new ParseException(modelName,
 									lineNum,
 									"non existing vertex referenced.");
@@ -156,8 +156,8 @@ public class ObjParser {
 						if(textureID != -1) {
 							//in case there is a texture on the face
 							try {
-								vec = vertices.get(textureID);
-							} catch (ArrayIndexOutOfBoundsException ex) {
+								vec = texcoords.get(textureID);
+							} catch (IndexOutOfBoundsException ex) {
 								throw new ParseException(modelName,
 										lineNum,
 										"non existing texture coord referenced.");
@@ -171,7 +171,7 @@ public class ObjParser {
 						}
 						try {
 							vec = normals.get(normalID);
-						} catch (ArrayIndexOutOfBoundsException ex) {
+						} catch (IndexOutOfBoundsException ex) {
 							throw new ParseException(modelName,
 									lineNum,
 									"non existing normal vertex referenced.");

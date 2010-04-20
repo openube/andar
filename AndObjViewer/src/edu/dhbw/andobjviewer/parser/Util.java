@@ -65,8 +65,10 @@ public class Util {
 		line != null; 
 		line = in.readLine()) {
 			line = getCanonicalLine(line);
-			out.write(line);
-			out.write('\n');
+			if(!line.equals("\n")) {
+				out.write(line);
+				out.write('\n');
+			}
 		}
 		in.close();
 		out.close();
