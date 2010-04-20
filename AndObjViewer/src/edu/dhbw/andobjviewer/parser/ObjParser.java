@@ -21,6 +21,7 @@ package edu.dhbw.andobjviewer.parser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 import edu.dhbw.andobjviewer.models.Group;
@@ -60,14 +61,17 @@ public class ObjParser {
 	 */
 	public Model parse(String modelName, BufferedReader is) throws IOException, ParseException {
 		//global vertices/normals
-		Vector<float[]> vertices = new Vector<float[]>();
-		Vector<float[]> normals = new Vector<float[]>();
-		Vector<float[]> texcoords = new Vector<float[]>();
+		ArrayList<float[]> vertices = new ArrayList<float[]>(1000);
+		ArrayList<float[]> normals = new ArrayList<float[]>(1000);
+		ArrayList<float[]> texcoords = new ArrayList<float[]>();
 		
 		
 		Model model = new Model();
 		Group curGroup = new Group();
 		MtlParser mtlParser = new MtlParser(model,fileUtil);
+		SimpleTokenizer spaceTokenizer = new SimpleTokenizer();
+		SimpleTokenizer slashTokenizer = new SimpleTokenizer();
+		slashTokenizer.setDelimiter("/");
 		
 		String line;
 		int lineNum = 1;
@@ -75,58 +79,61 @@ public class ObjParser {
 		line != null; 
 		line = is.readLine(), lineNum++)
 		{
-			line = Util.getCanonicalLine(line);
 			if (line.length() > 0) {
 				if (line.startsWith("# ")) {
 					//ignore comments
 				} else if (line.startsWith("v ")) {
 					//add new vertex to vector
 					String endOfLine = line.substring(2);
-					String[] coords = Util.splitBySpace(endOfLine);
+					spaceTokenizer.setStr(endOfLine);
 					vertices.add(new float[]{
-							Float.parseFloat(coords[0]),
-							Float.parseFloat(coords[1]),
-							Float.parseFloat(coords[2])});
+							Float.parseFloat(spaceTokenizer.next()),
+							Float.parseFloat(spaceTokenizer.next()),
+							Float.parseFloat(spaceTokenizer.next())});
 				}
 				else if (line.startsWith("vt ")) {
 					//add new texture vertex to vector
 					String endOfLine = line.substring(3);
-					String[] coords = Util.splitBySpace(endOfLine);
+					spaceTokenizer.setStr(endOfLine);
 					texcoords.add(new float[]{
-							Float.parseFloat(coords[0]),
-							Float.parseFloat(coords[1])});
+							Float.parseFloat(spaceTokenizer.next()),
+							Float.parseFloat(spaceTokenizer.next())});
 				}
 				else if (line.startsWith("f ")) {
 					//add face to group
 					String endOfLine = line.substring(2);
-					String[] coords = Util.splitBySpace(endOfLine);
-					if(coords.length != 3) {
+					spaceTokenizer.setStr(endOfLine);
+					int faces = spaceTokenizer.delimOccurCount()+1;
+					if(faces != 3) {
 						throw new ParseException(modelName,
 								lineNum, "only triangle faces are supported");
 					}
 					for (int i = 0; i < 3; i++) {//only triangles supported
-						String[] verts = coords[i].split("/");
+						String face = spaceTokenizer.next();
+						slashTokenizer.setStr(face);
+						int vertexCount = slashTokenizer.delimOccurCount()+1;
 						int vertexID=0;
 						int textureID=-1;
 						int normalID=0;
-						if(verts.length == 2) {
+						if(vertexCount == 2) {
 							//vertex reference
-							vertexID = Integer.parseInt(verts[0])-1;
+							vertexID = Integer.parseInt(slashTokenizer.next())-1;
 							//normal reference
-							normalID = Integer.parseInt(verts[1])-1;
+							normalID = Integer.parseInt(slashTokenizer.next())-1;
 							throw new ParseException(modelName,
 									lineNum,
 									"vertex normal needed.");
-						} else if(verts.length == 3) {
+						} else if(vertexCount == 3) {
 							//vertex reference
-							vertexID = Integer.parseInt(verts[0])-1;
-							if(!verts[1].equals("")) {
+							vertexID = Integer.parseInt(slashTokenizer.next())-1;
+							String texCoord = slashTokenizer.next();
+							if(!texCoord.equals("")) {
 								//might be omitted
 								//texture coord reference
-								textureID = Integer.parseInt(verts[1])-1;
+								textureID = Integer.parseInt(texCoord)-1;
 							}
 							//normal reference
-							normalID = Integer.parseInt(verts[2])-1;
+							normalID = Integer.parseInt(slashTokenizer.next())-1;
 						} else {
 							throw new ParseException(modelName,
 									lineNum,
@@ -180,11 +187,11 @@ public class ObjParser {
 				else if (line.startsWith("vn ")) {
 					//add new vertex normal to vector
 					String endOfLine = line.substring(3);
-					String[] coords = Util.splitBySpace(endOfLine);
+					spaceTokenizer.setStr(endOfLine);
 					normals.add(new float[]{
-							Float.parseFloat(coords[0]),
-							Float.parseFloat(coords[1]),
-							Float.parseFloat(coords[2])});
+							Float.parseFloat(spaceTokenizer.next()),
+							Float.parseFloat(spaceTokenizer.next()),
+							Float.parseFloat(spaceTokenizer.next())});
 				} else if (line.startsWith("mtllib ")) {
 					//parse material file
 					//get  ID of the mtl file
