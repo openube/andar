@@ -29,13 +29,6 @@ public class CustomActivity extends AndARActivity {
 			artoolkit = super.getArtoolkit();
 			someObject = new CustomObject
 				("test", "patt.hiro", 80.0, new double[]{0,0});
-			CustomObject someOtherObject = new CustomObject
-			("test2", "android.patt", 80.0, new double[]{0,0}, new float[]{1.0f, 1.0f, 0f, 1.0f});
-			CustomObject someOtherObject2 = new CustomObject
-			("test2", "patt.hiro", 80.0, new double[]{0,0}, new float[]{1.0f, 0.0f, 0f, 1.0f});
-			//artoolkit.registerARObject(someOtherObject);
-			//artoolkit.registerARObject(someOtherObject2);
-			//artoolkit.unregisterARObject(someOtherObject2);
 			artoolkit.registerARObject(someObject);
 		} catch (AndARException ex){
 			//handle the exception, that means: show the user what happened

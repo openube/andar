@@ -203,18 +203,6 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__Ljava_lang
     printf("*** Camera Parameter ***\n");
     arParamDisp( &cparam );
 
-    if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
-	//throw runtime exception as this method may be called by a background thread
-	__android_log_write(ANDROID_LOG_ERROR,"AR native","pattern load error !!");
-        	    jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARRuntimeException" );  
-		if ( exc != NULL ) 
-			(*env)->ThrowNew( env, exc, "pattern load error !!" ); 
-    } 
-#ifdef DEBUG_LOGGING
-    else {
-	__android_log_print(ANDROID_LOG_INFO,"AR native","pattern loaded successfully!! id:%d", patt_id);
-    }
-#endif
     //initialize openGL stuff
     argInit( &cparam, 1.0, 0, screenWidth, screenHeight, 0 );
 	
