@@ -54,6 +54,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private PreviewFrameSink frameSink;
 	private ByteBuffer frameBuffer;
 	private CameraConstFPS constFPS = null;	
+	private AutoFocusHandler focusHandler = null;
 	private Resources res;
 	private int textureSize=256;
 	private int previewFrameWidth=240;
@@ -68,15 +69,18 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private ARToolkit markerInfo;
 	private ConversionWorker convWorker;
 	private Camera cam;
+	private CameraStatus camStatus;
+	
 	
 	
 	public CameraPreviewHandler(GLSurfaceView glSurfaceView,
-			PreviewFrameSink sink, Resources res, ARToolkit markerInfo) {
+			PreviewFrameSink sink, Resources res, ARToolkit markerInfo, CameraStatus camStatus) {
 		this.glSurfaceView = glSurfaceView;
 		this.frameSink = sink;
 		this.res = res;
 		this.markerInfo = markerInfo;
 		convWorker = new ConversionWorker(sink);
+		this.camStatus = camStatus;
 	}
 	
 	/**
@@ -121,7 +125,6 @@ public class CameraPreviewHandler implements PreviewCallback {
 			//Quelle: http://www.celinuxforum.org/CelfPubWiki/AudioVideoGraphicsSpec_R2
 			throw new AndARException(res.getString(R.string.error_unkown_pixel_format));
 		}	
-		setMode(MODE_GRAY);
 		//get width/height of the camera
 		Size previewSize = camParams.getPreviewSize();
 		previewFrameWidth = previewSize.width;
@@ -139,7 +142,11 @@ public class CameraPreviewHandler implements PreviewCallback {
 		if(Config.USE_ONE_SHOT_PREVIEW) {
 			constFPS  = new CameraConstFPS(5, camera);
 			constFPS.start();
-		}		
+		}	
+		if(focusHandler == null) {
+			focusHandler = new AutoFocusHandler(camera);
+			focusHandler.start();
+		}
 	}
 
 	//size of a texture must be a power of 2
@@ -207,7 +214,8 @@ public class CameraPreviewHandler implements PreviewCallback {
 		 * @see java.lang.Thread#run()
 		 */
 		@Override
-		public synchronized void run() {			
+		public synchronized void run() {	
+			setName("ConversionWorker");
 			while(true) {
 				while(!newFrame) {
 					//protect against spurious wakeups
@@ -254,7 +262,6 @@ public class CameraPreviewHandler implements PreviewCallback {
 						CameraPreviewHandler.this.constFPS.notify();
 					}					
 				}
-				yield();
 			}
 		}
 		
@@ -291,16 +298,44 @@ public class CameraPreviewHandler implements PreviewCallback {
 		@Override
 		public synchronized void run() {
 			super.run();
+			setName("CameraConstFPS");
 			while(true) {
 				try {
 					wait(waitTime);
 				} catch (InterruptedException e) {}
-				synchronized (CameraPreviewHandler.this) {
+				if(camStatus.previewing)
 					cam.setOneShotPreviewCallback(CameraPreviewHandler.this);
-				}
 			}			
 		}
 	}
 
+	class AutoFocusHandler extends Thread implements AutoFocusCallback {
+		
+		private Camera camera;
+		
+		public AutoFocusHandler(Camera camera) {
+			this.camera = camera;
+		}
+		
+		@Override
+		public void run() {
+			super.run();
+			setName("Autofocus handler");
+			while(true) {
+				if(camStatus.previewing)
+					camera.autoFocus(this);
+				try {
+					Thread.sleep(20000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		@Override
+		public void onAutoFocus(boolean arg0, Camera arg1) {
+			
+		}
+	}
 
 }

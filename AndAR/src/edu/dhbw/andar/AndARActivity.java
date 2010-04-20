@@ -53,10 +53,9 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	private AndARRenderer renderer;
 	private Resources res;
 	private CameraPreviewHandler cameraHandler;
-	private boolean mPreviewing = false;
 	private boolean mPausing = false;
 	private ARToolkit artoolkit;
-	private AutoFocusHandler focusHandler = null;
+	private CameraStatus camStatus = new CameraStatus();
 
 	
     /** Called when the activity is first created. */
@@ -79,7 +78,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 		}
         glSurfaceView = new OpenGLCamView(this);
 		renderer = new AndARRenderer(res, artoolkit, this);
-		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, artoolkit);
+		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, artoolkit, camStatus);
         glSurfaceView.setRenderer(renderer);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         glSurfaceView.getHolder().addCallback(this);
@@ -153,7 +152,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     		camera = CameraHolder.instance().open();
     		
 	        Parameters params = camera.getParameters();
-	        //params.setPreviewSize(240,160);
+	        //reduce preview frame size for performance reasons
+	        params.setPreviewSize(240,160);
 	        
 	        //try to set the preview format
 	        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
@@ -175,11 +175,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 				cameraHandler.init(camera);
 			} catch (Exception e) {
 				e.printStackTrace();
-			}
-			if(focusHandler == null) {
-				focusHandler = new AutoFocusHandler(camera);
-				focusHandler.start();
-			}
+			}			
     	}
     }
     
@@ -188,23 +184,23 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         	CameraHolder.instance().keep();
         	CameraHolder.instance().release();
         	camera = null;
-            mPreviewing = false;
+        	camStatus.previewing = false;
         }
     }
     
     private void startPreview() {
     	if(mPausing) return;
-    	if (mPreviewing) stopPreview();
+    	if (camStatus.previewing) stopPreview();
     	openCamera();
 		camera.startPreview();
-    	mPreviewing = true;
+		camStatus.previewing = true;
     }
     
     private void stopPreview() {
-    	if (camera != null && mPreviewing) {
+    	if (camera != null && camStatus.previewing ) {
             camera.stopPreview();
         }
-        mPreviewing = false;
+    	camStatus.previewing = false;
     }
 
 	/* The GLSurfaceView changed
@@ -221,7 +217,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	 */
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		if(!mPreviewing)
+		if(!camStatus.previewing)
 			startPreview();  
 	}
 
@@ -238,36 +234,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 
 	public ARToolkit getArtoolkit() {
 		return artoolkit;
-	}
-	
-	class AutoFocusHandler extends Thread implements AutoFocusCallback {
-			
-		private Camera camera;
-		
-		public AutoFocusHandler(Camera camera) {
-			this.camera = camera;
-		}
-		
-		@Override
-		public void run() {
-			super.run();
-			while(true) {
-				if(mPreviewing)
-					camera.autoFocus(this);
-				try {
-					Thread.sleep(20000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-		@Override
-		public void onAutoFocus(boolean arg0, Camera arg1) {
-			
-		}
-	}
-	
+	}	
 	
 
 }
