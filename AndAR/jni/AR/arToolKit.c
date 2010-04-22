@@ -32,6 +32,7 @@
 #include <android/log.h>
 #include <stdlib.h>
 #include <simclist.h>
+#include <string.h>
 
 typedef struct {
     int       name;
@@ -45,23 +46,22 @@ typedef struct {
 	jobject objref;
 } Object;
 
+typedef struct {
+	int id;
+	char* filename;
+} patternID;
+
 int             xsize, ysize;
 int             thresh = 100;
 int             count = 0;
 
 ARParam         cparam;
 
-//pattern-file
-char           *patt_name      = "/sdcard/andar/patt.hiro";
-int		cur_marker_id = -1;
-int             patt_id;
-double          patt_width     = 80.0;
-double          patt_center[2] = {0.0, 0.0};
-double          patt_trans[3][4];
 //the opengl para matrix
 extern float   gl_cpara[16];
 float gl_para[16];
 list_t objects;
+list_t* patternIDs = NULL;
 
 /*
  * compare two objects by area
@@ -78,6 +78,40 @@ int objectcomparator(const void *a, const void *b) {
 		return 1;
 }
 
+int getPatternIDFromList(const char *filename) {
+	int id = -1;
+#ifdef DEBUG_LOGGING
+		__android_log_write(ANDROID_LOG_INFO,"AR native","trying to retrieve pattern from list");
+#endif
+	if(patternIDs == NULL) {
+#ifdef DEBUG_LOGGING
+		__android_log_write(ANDROID_LOG_INFO,"AR native","list of patterns is null!!");
+#endif	
+		return -1;
+	}
+	list_iterator_start(patternIDs);
+	while (list_iterator_hasnext(patternIDs)) { 
+		patternID * currPatt = (patternID *)list_iterator_next(patternIDs);
+#ifdef DEBUG_LOGGING
+		__android_log_print(ANDROID_LOG_INFO,"AR native","current pattern fiel: %s",currPatt->filename);
+#endif
+		if(strcmp(filename, currPatt->filename)==0) {
+#ifdef DEBUG_LOGGING
+		__android_log_write(ANDROID_LOG_INFO,"AR native","found pattern in list");
+#endif
+			id = currPatt->id;
+			break;
+		}
+	}
+	list_iterator_stop(patternIDs); 
+	
+#ifdef DEBUG_LOGGING
+		if(id==-1)
+		__android_log_print(ANDROID_LOG_INFO,"AR native","found no pattern in the list for file %s",filename);
+#endif
+	return id;
+}
+
 /*
  * Class:     edu_dhbw_andar_ARToolkit
  * Method:    artoolkit_init
@@ -85,10 +119,26 @@ int objectcomparator(const void *a, const void *b) {
  */
 JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__
   (JNIEnv * env, jobject object) {
+#ifdef DEBUG_LOGGING
+		__android_log_write(ANDROID_LOG_INFO,"AR native","initializing artoolkit");
+#endif
 	//initialize the list of objects
 	list_init(&objects);
 	//set the comperator function:
 	list_attributes_comparator(&objects, objectcomparator);
+	if(patternIDs==NULL) {
+		patternIDs = (list_t*) malloc(sizeof(list_t));
+		if(patternIDs == NULL) {
+#ifdef DEBUG_LOGGING
+		__android_log_write(ANDROID_LOG_INFO,"AR native","list of patterns is null after init!!");
+#endif	
+		} else {
+			list_init(patternIDs);
+		}
+	}	
+#ifdef DEBUG_LOGGING
+		__android_log_write(ANDROID_LOG_INFO,"AR native","finished initializing ARToolkit");
+#endif
   }
   
 /*
@@ -123,19 +173,33 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
 		newObject->marker_center[0] = (double) centerArr[0];
 		newObject->marker_center[1] = (double) centerArr[1];
 		newObject->objref = (*env)->NewGlobalRef(env, obj);
-		if( (newObject->id = arLoadPatt(cPatternFile)) < 0 ) {
-			//failed to read the pattern file
-			//release the object and throw an exception
-			free(newObject);
-			jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARException" );  
-			if ( exc != NULL ) 
-				(*env)->ThrowNew( env, exc, "could not read pattern file for object." );
+		if( (newObject->id = getPatternIDFromList(cPatternFile)) < 0 ) {
+			if( (newObject->id = arLoadPatt(cPatternFile)) < 0 ) {
+				//failed to read the pattern file
+				//release the object and throw an exception
+				free(newObject);
+				jclass exc = (*env)->FindClass( env, "edu/dhbw/andar/exceptions/AndARException" );  
+				if ( exc != NULL ) 
+					(*env)->ThrowNew( env, exc, "could not read pattern file for object." );
+			} else {
+	#ifdef DEBUG_LOGGING
+			__android_log_print(ANDROID_LOG_INFO,"AR native","loaded marker with ID %d from file: %s", newObject->id, cPatternFile);
+	#endif
+				//add object to the list
+				list_append(&objects, newObject);
+				patternID* newPatternID = (patternID *)malloc(sizeof(patternID));
+				if(newPatternID != NULL) {
+					newPatternID->filename = strdup(cPatternFile);
+					newPatternID->id = newObject->id;
+					list_append(patternIDs, newPatternID);
+				}
+			}
 		} else {
 #ifdef DEBUG_LOGGING
-		__android_log_print(ANDROID_LOG_INFO,"AR native","loaded marker with ID %d from file: %s", newObject->id, cPatternFile);
-#endif
-			//add object to the list
-			list_append(&objects, newObject);
+			__android_log_print(ANDROID_LOG_INFO,"AR native","loaded marker with ID %d from cached pattern ID", newObject->id, cPatternFile);
+	#endif
+				//add object to the list
+				list_append(&objects, newObject);
 		}
 	}
 	//release the marker center array
