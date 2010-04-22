@@ -66,7 +66,7 @@ public class Util {
 		line = in.readLine()) {
 			line = getCanonicalLine(line);
 			if(!line.equals("\n")) {
-				out.write(line);
+				out.write(line.trim());
 				out.write('\n');
 			}
 		}

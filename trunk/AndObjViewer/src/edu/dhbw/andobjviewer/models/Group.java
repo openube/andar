@@ -104,6 +104,8 @@ public class Group implements Serializable {
 			texcoords.position(0);
 			if(material != null && material.hasTexture()) {
 				textured = true;
+			} else {
+				textured = false;
 			}
 		}
 		groupTexcoords = null;

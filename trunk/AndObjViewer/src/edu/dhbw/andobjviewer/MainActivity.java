@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
 			    			selectFile();
 			    		} else {
 			    			//hand over control to the model viewer
-				    		Intent intent = new Intent(MainActivity.this, ModelViewerActivity.class);
+				    		Intent intent = new Intent(MainActivity.this, AugmentedModelViewerActivity.class);
 				            intent.setData(Uri.parse(data.getDataString()));
 				            intent.setAction(Intent.ACTION_VIEW);
 				            startActivityForResult(intent, VIEW_MODEL);
