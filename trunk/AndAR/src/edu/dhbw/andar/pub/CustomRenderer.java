@@ -16,4 +16,9 @@ public class CustomRenderer implements OpenGLRenderer {
 	public final void draw(GL10 gl) {
 		//draw non AR stuff here.
 	}
+
+	@Override
+	public void setupLighting(GL10 gl) {
+	
+	}
 }

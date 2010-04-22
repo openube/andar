@@ -43,6 +43,7 @@ import android.os.Debug;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
@@ -91,6 +92,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     
     /**
      * Set a renderer that draws non AR stuff. Optional, may be set to null or omited.
+     * and setups lighting stuff.
      * @param customRenderer
      */
     public void setNonARRenderer(OpenGLRenderer customRenderer) {
@@ -121,11 +123,15 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     	mPausing = true;
         this.glSurfaceView.onPause();
         super.onPause();
+        finish();
+        if(cameraHandler != null)
+        	cameraHandler.stopThreads();
     }
     
     @Override
     protected void onDestroy() {
     	super.onDestroy();    	
+    	System.runFinalization();
     	//if(Config.DEBUG)
     	//	Debug.stopMethodTracing();
     }
@@ -239,5 +245,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 		return artoolkit;
 	}	
 	
-
+	public SurfaceView getSurfaceView() {
+		return glSurfaceView;
+	}
 }

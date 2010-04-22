@@ -230,6 +230,17 @@ public class ARToolkit {
 		}
 	}
 	
+	/**
+	 * initialize the objects.
+	 * @param gl
+	 */
+	public final void initGL(GL10 gl) {
+		for (ARObject obj : arobjects) {
+			if(obj.isVisible())
+				obj.init(gl);
+		}
+	}
+	
 	class DetectMarkerWorker extends Thread {
 		private byte[] curFrame;
 		private boolean newFrame = false;

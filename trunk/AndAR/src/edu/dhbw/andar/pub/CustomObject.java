@@ -73,4 +73,9 @@ public class CustomObject extends ARObject {
 	    
 	    box.draw(gl);
 	}
+	@Override
+	public void init(GL10 gl) {
+		// TODO Auto-generated method stub
+		
+	}
 }

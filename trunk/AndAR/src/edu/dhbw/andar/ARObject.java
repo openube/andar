@@ -48,6 +48,7 @@ public abstract class ARObject {
 	//this object must be locked while altering the transMat
 	private double[] transMat = new double[16];//[3][4] array
 	private int id;
+	private boolean initialized = false;
 	
 	/**
 	 * Create a new AR object.
@@ -129,6 +130,10 @@ public abstract class ARObject {
 	 * @param gl
 	 */
 	public synchronized void draw(GL10 gl) {
+		if(!initialized) {
+			init(gl);
+			initialized = true;
+		}
 		glMatrixBuffer.put(glMatrix);
 		glMatrixBuffer.position(0);
 		
@@ -142,5 +147,7 @@ public abstract class ARObject {
 	    gl.glMatrixMode(GL10.GL_MODELVIEW);
 		gl.glLoadMatrixf(glMatrixBuffer);
 	}
+	
+	public abstract void init(GL10 gl); 
 	
 }
