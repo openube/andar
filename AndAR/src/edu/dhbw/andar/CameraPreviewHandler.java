@@ -70,6 +70,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private ConversionWorker convWorker;
 	private Camera cam;
 	private CameraStatus camStatus;
+	private boolean threadsRunning = true;
 	
 	
 	
@@ -139,6 +140,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		frameBuffer = GraphicsUtil.makeByteBuffer(frame.length);
 		frameSink.setPreviewFrameSize(textureSize, previewFrameWidth, previewFrameHeight);
 		markerInfo.setImageSize(previewFrameWidth, previewFrameHeight);
+		threadsRunning = true;
 		if(Config.USE_ONE_SHOT_PREVIEW) {
 			constFPS  = new CameraConstFPS(5, camera);
 			constFPS.start();
@@ -299,7 +301,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		public synchronized void run() {
 			super.run();
 			setName("CameraConstFPS");
-			while(true) {
+			while(threadsRunning) {
 				try {
 					wait(waitTime);
 				} catch (InterruptedException e) {}
@@ -326,7 +328,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		public synchronized void run() {
 			super.run();
 			setName("Autofocus handler");
-			while(true) {
+			while(threadsRunning) {
 				if(camStatus.previewing)
 					camera.autoFocus(this);
 				try {
@@ -342,6 +344,14 @@ public class CameraPreviewHandler implements PreviewCallback {
 		public void onAutoFocus(boolean arg0, Camera arg1) {
 			
 		}
+	}
+	
+	public void stopThreads() {
+		threadsRunning = false;
+		if(constFPS!= null)
+			constFPS.interrupt();
+		if(focusHandler!= null)
+			focusHandler.interrupt();
 	}
 
 }

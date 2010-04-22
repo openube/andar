@@ -110,9 +110,7 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 	 */
 	@Override
 	public final void onDrawFrame(GL10 gl) {
-		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-		if(customRenderer != null)
-			customRenderer.draw(gl);
+		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);		
 		
 		if(DEBUG)
 			gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
@@ -151,15 +149,21 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 
-		
-		gl.glEnable(GL10.GL_LIGHTING);
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, ambientLightBuffer);
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, diffuseLightBuffer);
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, specularLightBuffer);
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPositionBuffer);
-		gl.glEnable(GL10.GL_LIGHT0);
+		if(customRenderer != null)
+			customRenderer.setupLighting(gl);
+		else {
+			gl.glEnable(GL10.GL_LIGHTING);
+			gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, ambientLightBuffer);
+			gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, diffuseLightBuffer);
+			gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, specularLightBuffer);
+			//gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPositionBuffer);
+			gl.glEnable(GL10.GL_LIGHT0);
+		}
 		
 		markerInfo.draw(gl);
+		
+		if(customRenderer != null)
+			customRenderer.draw(gl);
 	}
 	
 
@@ -223,6 +227,8 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		
 		//register unchaught exception handler
 		Thread.currentThread().setUncaughtExceptionHandler(activity);
+		
+		markerInfo.initGL(gl);
 	}
 	
 	/**
