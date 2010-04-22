@@ -31,7 +31,7 @@ import edu.dhbw.andobjviewer.util.FileUtil;
 
 public class Model implements Serializable{
 	//position/rotation/scale
-	public float xrot = 0;
+	public float xrot = 90;
     public float yrot = 0;
     public float zrot = 0;
     public float xpos = 0;

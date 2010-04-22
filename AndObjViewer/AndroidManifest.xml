@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="edu.dhbw.andobjviewer"
+<manifest package="edu.dhbw.andobjviewer"
       android:versionCode="1"
-      android:versionName="1.0">
+      android:versionName="1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:icon="@drawable/icon" android:label="@string/app_name">
         <activity android:label="@string/app_name" android:name="MainActivity">
             <intent-filter>
@@ -13,9 +12,11 @@
 
     
 
-<activity android:name="ModelViewerActivity" android:exported="false"></activity>
+<activity android:exported="false" android:clearTaskOnLaunch="true" android:screenOrientation="landscape" android:name="AugmentedModelViewerActivity"></activity>
+
 </application>
     <uses-sdk android:minSdkVersion="4" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
 
 </manifest> 

@@ -31,6 +31,7 @@ import android.opengl.GLDebugHelper;
 import android.opengl.GLUtils;
 import android.util.Log;
 
+import edu.dhbw.andar.ARObject;
 import edu.dhbw.andobjviewer.models.Group;
 import edu.dhbw.andobjviewer.models.Material;
 import edu.dhbw.andobjviewer.models.Model;
@@ -41,7 +42,7 @@ import edu.dhbw.andobjviewer.models.Model;
  * @author tobi
  *
  */
-public class Model3D implements Serializable{
+public class Model3D extends ARObject implements Serializable{
 	
 	private Model model;
 	private Group[] texturedGroups;
@@ -49,6 +50,7 @@ public class Model3D implements Serializable{
 	private HashMap<Material, Integer> textureIDs = new HashMap<Material, Integer>();
 	
 	public Model3D(Model model) {
+		super("model", "patt.hiro", 80.0, new double[]{0,0});
 		this.model = model;
 		model.finalize();
 		//separate texture from non textured groups for performance reasons
@@ -67,7 +69,8 @@ public class Model3D implements Serializable{
 		this.nonTexturedGroups = nonTexturedGroups.toArray(new Group[nonTexturedGroups.size()]);	
 	}
 	
-	public void init(GL10 gl) {
+	@Override
+	public void init(GL10 gl){
 		int[]  tmpTextureID = new int[1];
 		//load textures of every material(that has a texture):
 		Iterator<Material> materialI = model.getMaterials().values().iterator();
@@ -89,7 +92,10 @@ public class Model3D implements Serializable{
 	}
 	
 	private Writer log = new LogWriter();
+	
+	@Override
 	public void draw(GL10 gl) {
+		super.draw(gl);
 		//gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
 		//do positioning:
 		gl.glScalef(model.scale, model.scale, model.scale);
