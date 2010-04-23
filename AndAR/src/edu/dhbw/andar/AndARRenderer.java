@@ -115,6 +115,7 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		if(DEBUG)
 			gl = (GL10) GLDebugHelper.wrap(gl, GLDebugHelper.CONFIG_CHECK_GL_ERROR, log);
 		setupDraw2D(gl);
+		gl.glDisable(GL10.GL_DEPTH_TEST);
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glDisable(GL10.GL_LIGHTING);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureName);
@@ -156,7 +157,7 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 			gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, ambientLightBuffer);
 			gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, diffuseLightBuffer);
 			gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, specularLightBuffer);
-			//gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPositionBuffer);
+			gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, lightPositionBuffer);
 			gl.glEnable(GL10.GL_LIGHT0);
 		}
 		
@@ -206,7 +207,6 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		gl.glClearDepthf(1.0f);
 		//enable textures:
 		gl.glEnable(GL10.GL_TEXTURE_2D);
-		gl.glEnable(GL10.GL_CULL_FACE);
 		
 		int[] textureNames = new int[1];
 		//generate texture names:
@@ -214,21 +214,13 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		textureName = textureNames[0];
 		
 		textureBuffer = makeFloatBuffer(textureCoords);
-		
-		//lighting
-		gl.glEnable(GL10.GL_LIGHTING);
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, makeFloatBuffer(ambientlight));
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_DIFFUSE, makeFloatBuffer(diffuselight));
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_SPECULAR, makeFloatBuffer(specularlight));
-		gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_POSITION, makeFloatBuffer(new float[]{100.0f,-200.0f,200.0f,0.0f}));
-		gl.glEnable(GL10.GL_LIGHT0);
-		
-		gl.glDisable(GL10.GL_COLOR_MATERIAL);
+
 		
 		//register unchaught exception handler
 		Thread.currentThread().setUncaughtExceptionHandler(activity);
 		
 		markerInfo.initGL(gl);
+		customRenderer.initGL(gl);
 	}
 	
 	/**

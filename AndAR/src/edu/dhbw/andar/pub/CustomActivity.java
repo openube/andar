@@ -23,8 +23,8 @@ public class CustomActivity extends AndARActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		
 		super.onCreate(savedInstanceState);
-		//CustomRenderer renderer = new CustomRenderer();//optional, may be set to null
-		//super.setNonARRenderer(renderer);//or might be omited
+		CustomRenderer renderer = new CustomRenderer();//optional, may be set to null
+		super.setNonARRenderer(renderer);//or might be omited
 		try {
 			artoolkit = super.getArtoolkit();
 			someObject = new CustomObject
