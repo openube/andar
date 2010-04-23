@@ -165,7 +165,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	        //try to set the preview format
 	        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
 	        camera.setParameters(params);
-	        if (Integer.parseInt(Build.VERSION.SDK) <= 4) {
+	        if (Integer.parseInt(Build.VERSION.SDK) < 4) {
 	        	//for android 1.5 compatibilty reasons:
 				 try {
 				    camera.setPreviewDisplay(glSurfaceView.getHolder());
@@ -195,7 +195,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         }
     }
     
-    private void startPreview() {
+    public void startPreview() {
     	if(mPausing) return;
     	if (camStatus.previewing) stopPreview();
     	openCamera();
@@ -226,8 +226,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	 */
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		if(!camStatus.previewing)
-			startPreview();  
+		/*if(!camStatus.previewing)
+			startPreview();  *///let the app decide when the preview should start
 	}
 
 	/* GLSurfaceView was destroyed
