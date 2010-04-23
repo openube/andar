@@ -8,4 +8,6 @@ AndAR is a project that enables Augmented Reality on the Android platform. This 
 = Details =
 
  # Install the application. Either search for "AndAR" in the android market, or use this barcode:
-<img src="http://andar.googlecode.com/files/andarqrcode.png" />
+<img src="http://andar.googlecode.com/files/andar_qrcode.png" />
+ # Print out the [http://andar.googlecode.com/files/Android.pdf marker], upon which the models will be projected.
+ # Start the application and enjoy!
