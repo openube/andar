@@ -1,0 +1,10 @@
+#This page describes how someone can build augmented reality applications using AndAR.
+
+= Introduction =
+
+Coming soon.
+
+
+= Details =
+
+Coming soon.
