@@ -25,4 +25,4 @@ This application is available in the android market:
 <img src="http://andar.googlecode.com/files/screenshot_loading.png" />
  * Finally the result should look like this:
 <img src="http://andar.googlecode.com/files/screenshot_model.jpg" />
-
+ * You may change the size of the model by swiping the screen vertically.
