@@ -1,4 +1,4 @@
-#This page describes how someone can build augmented reality applications using AndAR.
+#summary This page describes how someone can build augmented reality applications using AndAR.
 
 = Introduction =
 
