@@ -2,9 +2,13 @@
 
 = Introduction =
 
-Coming soon.
+AndAR Model Viewer is an Android application that is capable of displaying 3d models on Augmented Reality markers. *warning: this app is still in BETA state*
+The models have to be in wavefront obj format.
+
+This application is available in the android market:
 
 
 = Details =
 
-Coming soon.
+ # Print out the [http://andar.googlecode.com/files/Android.pdf marker], upon which the models will be projected on.
+ # 
