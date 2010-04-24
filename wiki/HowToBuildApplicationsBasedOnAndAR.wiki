@@ -7,4 +7,6 @@ The whole project is released under the GNU General Public License. This means i
 
 = Details =
 
-Coming soon.
+ * [http://www.eclipse.org/downloads/ Download] and install [http://www.eclipse.org/ Eclipse].(Eclipse IDE for Java Developers)
+ * Install the Android Plugin for Eclipse.
+ * Download the [http://andar.googlecode.com/files/AndAR.jar AndAR.jar] file.
