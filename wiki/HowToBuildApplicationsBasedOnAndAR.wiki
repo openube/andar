@@ -2,7 +2,7 @@
 
 = Introduction =
 
-Coming soon.
+The whole project is released under the GNU General Public License. This means it can be used in any project that is itself released under the GPL. If you would like to create a commercial version based on AndAR please contact [http://www.artoolworks.com/Home.html ARToolworks].
 
 
 = Details =
