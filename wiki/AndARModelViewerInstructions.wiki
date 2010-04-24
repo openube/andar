@@ -13,7 +13,8 @@ This application is available in the android market:
  * Install the application, either search for "AndAR Model Viewer, or use the following barcode:
 <img src="http://andar.googlecode.com/files/modelviewer_qrcode.png" />
  * You need to install the OI File Manager, though the app will automatically point you to this app in the market.
- * Print out the [http://andar.googlecode.com/files/Android.pdf marker], upon which the models will be projected.
+ * Print out the [http://andar.googlecode.com/files/Android.pdf marker], upon which the models will be projected. The marker will look like this:
+<img src="http://andar.googlecode.com/files/androidmarker.png" width="100" />
  * Download obj model files to your sdcard, e.g. the model of superman:(you must download both files)
    * [http://andar.googlecode.com/files/SupermanSmall.mtl superman obj file]
    * [http://andar.googlecode.com/files/SupermanSmall.obj superman mtl file]
