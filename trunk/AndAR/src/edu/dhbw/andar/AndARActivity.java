@@ -22,26 +22,20 @@ package edu.dhbw.andar;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 
-import edu.dhbw.andar.exceptions.AndARException;
+
 import edu.dhbw.andar.exceptions.AndARRuntimeException;
 import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andar.util.IO;
-import edu.dhbw.andopenglcam.R;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
-import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.Parameters;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Debug;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
@@ -57,6 +51,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	private boolean mPausing = false;
 	private ARToolkit artoolkit;
 	private CameraStatus camStatus = new CameraStatus();
+	private boolean surfaceCreated = false;
 
 	
     /** Called when the activity is first created. */
@@ -99,15 +94,24 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 		renderer.setNonARRenderer(customRenderer);
 	}
 
+    /**
+     * Avoid that the screen get's turned off by the system.
+     */
 	public void disableScreenTurnOff() {
     	getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
     			WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
     
+	/**
+	 * Set's the orientation to landscape, as this is needed by AndAR.
+	 */
     public void setOrientation()  {
     	setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
     
+    /**
+     * Maximize the application.
+     */
     public void setFullscreen() {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -161,23 +165,23 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	        Parameters params = camera.getParameters();
 	        //reduce preview frame size for performance reasons
 	        params.setPreviewSize(240,160);
+	        try {
+	        	camera.setParameters(params);
+	        } catch(RuntimeException ex) {
+	        	ex.printStackTrace();
+	        }
 	        
+	        params = camera.getParameters();
 	        //try to set the preview format
 	        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
-	        camera.setParameters(params);
-	        if (Integer.parseInt(Build.VERSION.SDK) < 4) {
-	        	//for android 1.5 compatibilty reasons:
-				 try {
-				    camera.setPreviewDisplay(glSurfaceView.getHolder());
-				 } catch (IOException e1) {
-				        e1.printStackTrace();
-				 }
-	        }
+	        try {
+	        	camera.setParameters(params);
+	        } catch(RuntimeException ex) {
+	        	ex.printStackTrace();
+	        }	        
 	        if(!Config.USE_ONE_SHOT_PREVIEW) {
 	        	camera.setPreviewCallback(cameraHandler);	 
-	        } /*else {
-	        	camera.setOneShotPreviewCallback(cameraHandler);
-	        }*/
+	        } 
 			try {
 				cameraHandler.init(camera);
 			} catch (Exception e) {
@@ -195,7 +199,11 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         }
     }
     
+    /**
+     * Open the camera and start detecting markers.
+     */
     public void startPreview() {
+    	if(!surfaceCreated) return;
     	if(mPausing) return;
     	if (camStatus.previewing) stopPreview();
     	openCamera();
@@ -203,7 +211,10 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 		camStatus.previewing = true;
     }
     
-    private void stopPreview() {
+    /**
+     * Close the camera and stop detecting markers.
+     */
+    public void stopPreview() {
     	if (camera != null && camStatus.previewing ) {
     		camStatus.previewing = false;
             camera.stopPreview();
@@ -226,8 +237,16 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	 */
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		/*if(!camStatus.previewing)
-			startPreview();  *///let the app decide when the preview should start
+		surfaceCreated = true;
+		if (Integer.parseInt(Build.VERSION.SDK) < 4) {
+        	//for android 1.5 compatibilty reasons:
+			 try {
+				 if(holder != null)
+					 camera.setPreviewDisplay(holder);
+			 } catch (IOException e1) {
+			        e1.printStackTrace();
+			 }
+        }
 	}
 
 	/* GLSurfaceView was destroyed
@@ -240,11 +259,17 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         closeCamera();
 	}
 	
-
+	/**
+	 * @return  a the instance of the ARToolkit.
+	 */
 	public ARToolkit getArtoolkit() {
 		return artoolkit;
 	}	
 	
+	/**
+	 * 
+	 * @return the OpenGL surface.
+	 */
 	public SurfaceView getSurfaceView() {
 		return glSurfaceView;
 	}
