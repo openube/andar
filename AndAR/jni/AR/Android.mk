@@ -27,7 +27,7 @@ LOCAL_SRC_FILES := simclist.c mAlloc.c mFree.c mAllocDup.c mDup.c mAllocTrans.c 
 #LOCAL_STATIC_LIBRARIES := libarfirst libarsecond libarthird
 
 #bind logging library
-LOCAL_LDLIBS := -llog -lGLESv1_CM
+LOCAL_LDLIBS := -llog #-lGLESv1_CM
 
 include $(BUILD_SHARED_LIBRARY)
 
