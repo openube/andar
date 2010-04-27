@@ -151,7 +151,7 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 
 		if(customRenderer != null)
-			customRenderer.setupLighting(gl);
+			customRenderer.setupEnv(gl);
 		else {
 			gl.glEnable(GL10.GL_LIGHTING);
 			gl.glLightfv(GL10.GL_LIGHT0, GL10.GL_AMBIENT, ambientLightBuffer);

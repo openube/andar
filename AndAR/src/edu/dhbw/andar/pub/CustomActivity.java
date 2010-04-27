@@ -3,6 +3,7 @@ package edu.dhbw.andar.pub;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
 import edu.dhbw.andar.ARToolkit;
 import edu.dhbw.andar.AndARActivity;
 import edu.dhbw.andar.CameraPreviewHandler;
@@ -30,10 +31,17 @@ public class CustomActivity extends AndARActivity {
 			someObject = new CustomObject
 				("test", "patt.hiro", 80.0, new double[]{0,0});
 			artoolkit.registerARObject(someObject);
+			someObject = new CustomObject
+			("test", "android.patt", 80.0, new double[]{0,0});
+			artoolkit.registerARObject(someObject);
+			someObject = new CustomObject
+			("test", "barcode.patt", 80.0, new double[]{0,0});
+			artoolkit.registerARObject(someObject);
 		} catch (AndARException ex){
 			//handle the exception, that means: show the user what happened
 			System.out.println("");
-		}		
+		}	
+		getSurfaceView().getHolder().addCallback(this);		
 	}
 
 	/**
@@ -42,22 +50,29 @@ public class CustomActivity extends AndARActivity {
 	@Override
 	public void uncaughtException(Thread thread, Throwable ex) {
 		System.out.println("");
+	}	
+	
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		super.surfaceCreated(holder);
+		startPreview();
 	}
+	
 	
 	/* (non-Javadoc)
 	 * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
 	 */
-	@Override
+	/*@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
     	menu.add(0, 0, 0, "reg");
     	menu.add(0, 1, 0, "unreg");
 		return true;
-	}
+	}*/
 	
 	/* (non-Javadoc)
 	 * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
 	 */
-	@Override
+	/*@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if(item.getItemId()==1) {
 			artoolkit.unregisterARObject(someObject);
@@ -71,7 +86,7 @@ public class CustomActivity extends AndARActivity {
 			}
 		}
 		return true;
-	}
+	}*/
 	
 	
 }
