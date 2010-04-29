@@ -16,11 +16,11 @@ This application is available in the android market:
  * Print out the [http://andar.googlecode.com/files/Android.pdf marker], upon which the models will be projected. The marker will look like this:
 <img src="http://andar.googlecode.com/files/androidmarker.png" width="100" />
  * Download obj model files to your sdcard, e.g. the model of superman:(you must download both files)
-   * [http://andar.googlecode.com/files/supermanobj_qrcode_new.png superman obj file]
-   * [http://andar.googlecode.com/files/supermanobj_qrcode_new.png superman mtl file]
+   * [http://andar.googlecode.com/files/SupermanSmall.obj obj file]
+   * [http://andar.googlecode.com/files/SupermanSmall.mtl superman mtl file]
    * Alternatively use the following barcodes:
-<img src="http://andar.googlecode.com/files/superman_mtl_qrcode.png" />
-<img src="http://andar.googlecode.com/files/superman_obj_qrcode.png" />
+<img src="http://andar.googlecode.com/files/supermanmtl_qrcode_new.png" />
+<img src="http://andar.googlecode.com/files/supermanobj_qrcode_new.png" />
  * Select the obj file on the sdcard:
 <img src="http://andar.googlecode.com/files/select_obj.png" />
  * Wait for the application to load the model. This might take a while, that's perfectly normal. Just be patient:
