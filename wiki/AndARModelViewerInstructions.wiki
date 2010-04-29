@@ -17,7 +17,7 @@ This application is available in the android market:
 <img src="http://andar.googlecode.com/files/androidmarker.png" width="100" />
  * Download obj model files to your sdcard, e.g. the model of superman:(you must download both files)
    * [http://andar.googlecode.com/files/supermanobj_qrcode.png superman obj file]
-   * [http://andar.googlecode.com/files/supermanobj_qrcode.png superman mtl file]
+   * [http://andar.googlecode.com/files/supermanmtl_qrcode.png superman mtl file]
    * Alternatively use the following barcodes:
 <img src="http://andar.googlecode.com/files/superman_mtl_qrcode.png" />
 <img src="http://andar.googlecode.com/files/superman_obj_qrcode.png" />
