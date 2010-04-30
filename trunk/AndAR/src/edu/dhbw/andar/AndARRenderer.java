@@ -21,9 +21,12 @@ package edu.dhbw.andar;
 
 
 import java.io.Writer;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -35,7 +38,9 @@ import edu.dhbw.andar.interfaces.PreviewFrameSink;
 
 
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
+import android.graphics.Bitmap.Config;
 import android.hardware.Camera.Size;
 import android.opengl.GLDebugHelper;
 import android.opengl.GLUtils;
@@ -76,6 +81,10 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 	private FloatBuffer textureBuffer;
 	private FloatBuffer squareBuffer;
 	private boolean frameEnqueued = false;
+	private boolean takeScreenshot = false;
+	private Bitmap screenshot;
+	private Object screenshotMonitor = new Object();
+	private boolean screenshotTaken = false;
 	private ByteBuffer frameData = null;
 	private ReentrantLock frameLock = new ReentrantLock();
 	private boolean isTextureInitialized = false;
@@ -83,6 +92,8 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 	private int textureSize = 256;
 	private int previewFrameWidth = 256;
 	private int previewFrameHeight = 256;
+	private int screenWidth = 0;
+	private int screenHeight = 0;
 	private ARToolkit markerInfo;
 	private float aspectRatio=1;
 	private OpenGLRenderer customRenderer;
@@ -165,6 +176,36 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		
 		if(customRenderer != null)
 			customRenderer.draw(gl);
+		
+		//take a screenshot, if desired
+		if(takeScreenshot) {
+			//http://www.anddev.org/how_to_get_opengl_screenshot__useful_programing_hint-t829.html
+			takeScreenshot = false;
+			int[] tmp = new int[screenHeight*screenWidth];
+			int[] screenshot = new int[screenHeight*screenWidth];
+			Buffer screenshotBuffer = IntBuffer.wrap(tmp);
+			screenshotBuffer.position(0);
+			gl.glReadPixels(0,0,screenWidth,screenHeight, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, screenshotBuffer); 
+			for(int i=0; i<screenHeight; i++) 
+	         {//remember, that OpenGL bitmap is incompatible with Android bitmap 
+	          //and so, some correction need.      
+	              for(int j=0; j<screenWidth; j++) 
+	              { 
+	                   int pix=tmp[i*screenWidth+j]; 
+	                   int pb=(pix>>16)&0xff; 
+	                   int pr=(pix<<16)&0x00ff0000; 
+	                   int pix1=(pix&0xff00ff00) | pr | pb; 
+	                   screenshot[(screenHeight-i-1)*screenWidth+j]=pix1; 
+	              } 
+	         }  
+			this.screenshot = Bitmap.createBitmap(screenshot, screenWidth, screenHeight, Config.RGB_565);
+			
+			screenshotTaken = true;
+			//wake up the waiting method
+			synchronized (screenshotMonitor) {
+				screenshotMonitor.notifyAll();
+			}			
+		}
 	}
 	
 
@@ -184,6 +225,8 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		
 		squareBuffer = makeFloatBuffer(square);		
 		markerInfo.setScreenSize(width, height);
+		screenHeight = height;
+		screenWidth = width;
 	}
 	
 	/**
@@ -315,6 +358,20 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 
 	public void setNonARRenderer(OpenGLRenderer customRenderer) {
 		this.customRenderer = customRenderer;
+	}
+
+	public Bitmap takeScreenshot() {
+		synchronized (screenshotMonitor) {
+			screenshotTaken = false;
+			takeScreenshot = true;
+			while(!screenshotTaken) {
+				//protect against spurios wakeups
+				try {
+					screenshotMonitor.wait();
+				} catch (InterruptedException e) {}
+			}
+		}		
+		return screenshot;
 	}
 	
 	
