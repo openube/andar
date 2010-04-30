@@ -21,11 +21,13 @@
  * arToolKit.c
  * author: Tobias Domhan
  * license: GPL
- * This is the glue between the Java and the C part.
+ * This is the glue between the Java and the C part of AndAR.
  */
 
+//IMPORTS
 #include <GLES/gl.h>
 #include <stdio.h>
+//ar.h containing the logging switch (DEBUG_LOGGING)
 #include <AR/ar.h>
 #include <AR/param.h>
 #include <../marker_info.h>
@@ -33,38 +35,52 @@
 #include <stdlib.h>
 #include <simclist.h>
 #include <string.h>
+//END IMPORTS
 
+//DATASTRUCTURES
+/**
+ * Represents an AR Object. There is one Java object that corresponds to each of those.
+ * The data structure will contain all information that is needed in the native code.
+ */
 typedef struct {
     int       name;
     int        id;
-    int        visible;
-	int		   collide;
-    double     marker_coord[4][2];
-    double     trans[3][4];
+//    double     marker_coord[4][2];//not needed anymore -> using the array of the corresponding java object
+//    double     trans[3][4];//not needed anymore -> using the array of the corresponding java object
     double     marker_width;
     double     marker_center[2];
 	jobject objref;
 } Object;
 
+/**
+ * Data structure representing a pattern ID. Used for caching the pattern IDs.
+ * Contains the filename of the pattern file, e.g. patt.hiro, and the the according ID.
+ */
 typedef struct {
 	int id;
 	char* filename;
 } patternID;
 
+//size of the camera images
 int             xsize, ysize;
+//Binarization threshold
 int             thresh = 100;
 int             count = 0;
-
+//camera distortion parameters
 ARParam         cparam;
 
 //the opengl para matrix
 extern float   gl_cpara[16];
-float gl_para[16];
+//A list of AR objects
 list_t objects;
+//A list of cached pattern IDs
 list_t* patternIDs = NULL;
 
+//END DATASTRUCTURES
+
 /*
- * compare two objects by area
+ * compare an AR object with an ID
+ * used to search the list of objects for an particular object.
  * return 0 if the objects equal
  * and 1 otherwise
  */
@@ -78,6 +94,11 @@ int objectcomparator(const void *a, const void *b) {
 		return 1;
 }
 
+/**
+ * This function will search the list of cached pattern IDs for a pattern ID according to the given filename.
+ * If it finds one, the found ID will be returned.
+ * If not, -1 will be returned.
+ */
 int getPatternIDFromList(const char *filename) {
 	int id = -1;
 #ifdef DEBUG_LOGGING
@@ -112,6 +133,9 @@ int getPatternIDFromList(const char *filename) {
 	return id;
 }
 
+/**
+ * Do some basic initialization, like creating data structures.
+ */
 /*
  * Class:     edu_dhbw_andar_ARToolkit
  * Method:    artoolkit_init
@@ -126,6 +150,9 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__
 	list_init(&objects);
 	//set the comperator function:
 	list_attributes_comparator(&objects, objectcomparator);
+	//Intialize the list of pattern IDs
+	//It might already be initialized, as the native library doesn't get unloaded after the java application finished
+	//The pattern IDs will be cached during multiple invocation of the Java application(AndAR)
 	if(patternIDs==NULL) {
 		patternIDs = (list_t*) malloc(sizeof(list_t));
 		if(patternIDs == NULL) {
@@ -140,7 +167,15 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__
 		__android_log_write(ANDROID_LOG_INFO,"AR native","finished initializing ARToolkit");
 #endif
   }
-  
+
+/**
+ * Register a object to the native library. From now on the detection function will determine
+ * if the given object is visible on a marker, and set the transformation matrix accordingly.
+ * @param id a unique ID of the object
+ * @param patternName the fileName of the pattern
+ * @param markerWidth the width of the object
+ * @param markerCenter the center of the object
+ */  
 /*
  * Class:     edu_dhbw_andar_ARToolkit
  * Method:    addObject
@@ -164,7 +199,7 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
 		if ( exc != NULL ) 
 			(*env)->ThrowNew( env, exc, "could not allocate memory for new object." ); 
 	} else {
-		//ok object allocate, now fill the struct with data
+		//ok object allocated, now fill the struct with data
 #ifdef DEBUG_LOGGING
 		__android_log_print(ANDROID_LOG_INFO,"AR native","registering object with name %d", name);
 #endif
@@ -173,6 +208,9 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
 		newObject->marker_center[0] = (double) centerArr[0];
 		newObject->marker_center[1] = (double) centerArr[1];
 		newObject->objref = (*env)->NewGlobalRef(env, obj);
+		//search the list of pattern IDs for a pattern matching the given filename
+		//this is needed as the native library doesn't get unloaded after the Java application finished
+		//and multiple invocations of arLoadPatt with the same pattern file will result in incorrect IDs
 		if( (newObject->id = getPatternIDFromList(cPatternFile)) < 0 ) {
 			if( (newObject->id = arLoadPatt(cPatternFile)) < 0 ) {
 				//failed to read the pattern file
@@ -207,7 +245,10 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
 	(*env)->ReleaseStringUTFChars( env, patternFile, cPatternFile);
   }
   
-
+/**
+ * Remove the object from the list of registered objects.
+ * @param id the id of the object.
+ */
 /*
  * Class:     edu_dhbw_andar_ARToolkit
  * Method:    removeObject
@@ -234,6 +275,13 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_removeObject
 #endif
 }
 
+/**
+ * Do initialization specific to the image/screen dimensions.
+ * @param imageWidth width of the image data
+ * @param imageHeight height of the image data
+ * @param screenWidth width of the screen
+ * @param screenHeight height of the screen
+ */
 /*
  * Class:     edu_dhbw_andar_ARToolkit
  * Method:    artoolkit_init
@@ -289,6 +337,12 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1init__Ljava_lang
 	(*env)->ReleaseStringUTFChars( env, calibFile, cparam_name);
 }
 
+/**
+ * detect the markers in the given frame.
+ * @param in the image 
+ * @param matrix the transformation matrix for each marker, will be locked right before the trans matrix will be altered
+ * @return number of markers
+ */
 /*
  * Class:     edu_dhbw_andar_MarkerInfo
  * Method:    artoolkit_detectmarkers
