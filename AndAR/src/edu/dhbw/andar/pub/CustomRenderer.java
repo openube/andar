@@ -4,9 +4,7 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.content.res.Resources;
-import edu.dhbw.andar.AndARRenderer;
-import edu.dhbw.andar.ARToolkit;
+
 import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andar.util.GraphicsUtil;
 /**

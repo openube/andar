@@ -5,22 +5,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
-import android.opengl.GLSurfaceView;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.widget.Toast;
 import edu.dhbw.andar.ARToolkit;
 import edu.dhbw.andar.AndARActivity;
-import edu.dhbw.andar.CameraPreviewHandler;
 import edu.dhbw.andar.exceptions.AndARException;
-import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andopenglcam.R;
 
 /**
@@ -60,31 +59,14 @@ public class CustomActivity extends AndARActivity {
 
 	/**
 	 * Inform the user about exceptions that occurred in background threads.
+	 * This exception is rather severe and can not be recovered from.
+	 * Inform the user and shut down the application.
 	 */
 	@Override
 	public void uncaughtException(Thread thread, Throwable ex) {
-		System.out.println("");
+		Log.e("AndAR EXCEPTION", ex.getMessage());
+		finish();
 	}	
-	
-	@Override
-	public void surfaceCreated(SurfaceHolder holder) {
-		super.surfaceCreated(holder);
-	}
-	
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
-		super.surfaceChanged(holder, format, width, height);
-		/*new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				startPreview();
-				return null;
-			}
-			
-		}.execute();*/
-	}
 	
 	
 	/* (non-Javadoc)

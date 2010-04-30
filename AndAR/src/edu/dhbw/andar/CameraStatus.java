@@ -1,5 +1,5 @@
 package edu.dhbw.andar;
 
 public class CameraStatus {
-	public boolean previewing  = false;
+	protected boolean previewing  = false;
 }

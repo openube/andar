@@ -20,6 +20,8 @@
 package edu.dhbw.andar;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -33,6 +35,7 @@ import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 import edu.dhbw.andar.exceptions.AndARException;
+import edu.dhbw.andar.exceptions.AndARRuntimeException;
 import edu.dhbw.andar.interfaces.PreviewFrameSink;
 import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andopenglcam.R;
@@ -103,6 +106,26 @@ public class CameraPreviewHandler implements PreviewCallback {
 	private native void yuv420sp2rgb(byte[] in, int width, int height, int textureSize, byte[] out);
 
 
+	/**
+	 * Returns the best pixel format of the list or -1 if none suites.
+	 * @param listOfFormats
+	 * @return
+	 */
+	public static int getBestSupportedFormat(List<Integer> listOfFormats) {
+		int format = -1;
+		for (Iterator<Integer> iterator = listOfFormats.iterator(); iterator.hasNext();) {
+			Integer integer =  iterator.next();
+			if(integer.intValue() == PixelFormat.YCbCr_420_SP) {
+				//alright the optimal format is supported..let's return
+				format = PixelFormat.YCbCr_420_SP;
+				return -1;
+			} else if(integer.intValue() == PixelFormat.YCbCr_422_SP) {
+				format = PixelFormat.YCbCr_422_SP;
+				//this format is not optimal. do not return, a better format might be in the list.
+			}
+		}
+		return format;
+	}
 	
 	/**
 	 * the size of the camera preview frame is dynamic
@@ -113,7 +136,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 	 * http://groups.google.de/group/android-developers/browse_thread/thread/c85e829ab209ceea/d3b29d3ddc8abf9b?lnk=gst&q=YUV+420#d3b29d3ddc8abf9b
 	 * @param camera
 	 */
-	public void init(Camera camera) throws Exception {
+	protected void init(Camera camera)  {
 		Parameters camParams = camera.getParameters();
 		//check if the pixel format is supported
 		if (camParams.getPreviewFormat() == PixelFormat.YCbCr_420_SP)  {
@@ -124,7 +147,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 			//Das Format ist semi planar, Erklärung:
 			//semi-planar YCbCr 4:2:2 : two arrays, one with all Ys, one with Cb and Cr. 
 			//Quelle: http://www.celinuxforum.org/CelfPubWiki/AudioVideoGraphicsSpec_R2
-			throw new AndARException(res.getString(R.string.error_unkown_pixel_format));
+			throw new AndARRuntimeException(res.getString(R.string.error_unkown_pixel_format));
 		}	
 		//get width/height of the camera
 		Size previewSize = camParams.getPreviewSize();
