@@ -20,6 +20,8 @@ The glue between Java an C is provided by the file AR/arToolkit.c.(regarding the
 
 The file arGl.c had to be modified, as opengl on android only supports float matrices.
 
+The file AR/ar.h contains a preprocessing define called DEBUG_LOGGING, which en/disables logging messages for debug purposes. Should be turned off before production releases.
+
 Regards
 Tobi   
    
