@@ -28,19 +28,28 @@ import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andar.util.IO;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.hardware.Camera.PreviewCallback;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.FrameLayout;
 
 public abstract class AndARActivity extends Activity implements Callback, UncaughtExceptionHandler{
 	private GLSurfaceView glSurfaceView;
@@ -52,6 +61,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	private ARToolkit artoolkit;
 	private CameraStatus camStatus = new CameraStatus();
 	private boolean surfaceCreated = false;
+	private SurfaceHolder mSurfaceHolder = null;
 
 	
     /** Called when the activity is first created. */
@@ -72,14 +82,21 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 			e.printStackTrace();
 			throw new AndARRuntimeException(e.getMessage());
 		}
-        //glSurfaceView = new GLSurfaceView(this);
+		FrameLayout frame = new FrameLayout(this);
+		Preview preview = new Preview(this);
+				
         glSurfaceView = new GLSurfaceView(this);
 		renderer = new AndARRenderer(res, artoolkit, this);
 		cameraHandler = new CameraPreviewHandler(glSurfaceView, renderer, res, artoolkit, camStatus);
         glSurfaceView.setRenderer(renderer);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         glSurfaceView.getHolder().addCallback(this);
-        setContentView(glSurfaceView);
+        //setContentView(glSurfaceView);
+        //addContentView(glSurfaceView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        frame.addView(glSurfaceView);
+        frame.addView(preview);
+        
+        setContentView(frame);
         //if(Config.DEBUG)
         //	Debug.startMethodTracing("AndAR");
     }
@@ -162,6 +179,12 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	    	//camera = Camera.open();
     		camera = CameraHolder.instance().open();
     		
+    		try {
+				camera.setPreviewDisplay(mSurfaceHolder);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+    		
 	        Parameters params = camera.getParameters();
 	        //reduce preview frame size for performance reasons
 	        params.setPreviewSize(240,160);
@@ -204,7 +227,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
      */
     public void startPreview() {
     	if(!surfaceCreated) return;
-    	if(mPausing) return;
+    	if(mPausing || isFinishing()) return;
     	if (camStatus.previewing) stopPreview();
     	openCamera();
 		camera.startPreview();
@@ -228,7 +251,20 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		System.out.println("");
+		/*if (Integer.parseInt(Build.VERSION.SDK) < 4) {
+        	//for android 1.5 compatibilty reasons:
+			 try {
+				 if(holder != null && camera != null)
+					 camera.setPreviewDisplay(holder);
+			 } catch (IOException e1) {
+			        e1.printStackTrace();
+			 }
+        }*/
+		// We need to save the holder for later use, even when the mCameraDevice
+        // is null. This could happen if onResume() is invoked after this
+        // function.
+        //mSurfaceHolder = holder;
+		
 	}
 
 	/* The GLSurfaceView was created
@@ -237,16 +273,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	 */
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		surfaceCreated = true;
-		if (Integer.parseInt(Build.VERSION.SDK) < 4) {
-        	//for android 1.5 compatibilty reasons:
-			 try {
-				 if(holder != null)
-					 camera.setPreviewDisplay(holder);
-			 } catch (IOException e1) {
-			        e1.printStackTrace();
-			 }
-        }
+		surfaceCreated = true;			
 	}
 
 	/* GLSurfaceView was destroyed
@@ -255,8 +282,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	 */
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-        stopPreview();
-        closeCamera();
+
 	}
 	
 	/**
@@ -267,10 +293,52 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	}	
 	
 	/**
+	 * Take a screenshot. Must not be called from the GUI thread, e.g. from methods like
+	 * onCreateOptionsMenu and onOptionsItemSelected. You have to use a asynctask for this purpose.
+	 * @return the screenshot
+	 */
+	public Bitmap takeScreenshot() {
+		return renderer.takeScreenshot();
+	}
+	
+	/**
 	 * 
 	 * @return the OpenGL surface.
 	 */
 	public SurfaceView getSurfaceView() {
 		return glSurfaceView;
+	}
+	
+	class Preview extends SurfaceView implements SurfaceHolder.Callback {
+	    SurfaceHolder mHolder;
+	    Camera mCamera;
+	    
+	    Preview(Context context) {
+	        super(context);
+	        
+	        // Install a SurfaceHolder.Callback so we get notified when the
+	        // underlying surface is created and destroyed.
+	        mHolder = getHolder();
+	        mHolder.addCallback(this);
+	        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+	    }
+
+	    public void surfaceCreated(SurfaceHolder holder) {
+	    }
+
+	    public void surfaceDestroyed(SurfaceHolder holder) {
+	        // Surface will be destroyed when we return, so stop the preview.
+	        // Because the CameraDevice object is not a shared resource, it's very
+	        // important to release it when the activity is paused.
+	        stopPreview();
+	        closeCamera();
+	        mSurfaceHolder = null;
+	    }
+
+	    public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+	    	mSurfaceHolder = holder;
+	    	startPreview();
+	    }
+
 	}
 }
