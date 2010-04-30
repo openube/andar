@@ -126,7 +126,8 @@ public class ARToolkit {
 	}
 	
 	/**
-	 * Register a object to the native library.
+	 * Register a object to the native library. From now on the detection function will determine
+	 * if the given object is visible on a marker, and set the transformation matrix accordingly.
 	 * @param id a unique ID of the object
 	 * @param patternName the fileName of the pattern
 	 * @param markerWidth the width of the object
@@ -136,7 +137,7 @@ public class ARToolkit {
 	
 	/**
 	 * Remove the object from the list of registered objects.
-	 * @param id
+	 * @param id the id of the object.
 	 */
 	private native void removeObject(int id);
 	
@@ -169,7 +170,7 @@ public class ARToolkit {
 	 * @param width of the screen
 	 * @param height of the screen
 	 */
-	public void setScreenSize(int width, int height) {
+	protected void setScreenSize(int width, int height) {
 		if(Config.DEBUG)
 			Log.i("MarkerInfo", "setting screen width("+width+") and height("+height+")");
 		this.screenWidth = width;
@@ -182,7 +183,7 @@ public class ARToolkit {
 	 * @param width of the image
 	 * @param height of the image
 	 */
-	public void setImageSize(int width, int height) {
+	protected void setImageSize(int width, int height) {
 		if(Config.DEBUG)
 			Log.i("MarkerInfo", "setting image width("+width+") and height("+height+")");
 		this.imageWidth = width;

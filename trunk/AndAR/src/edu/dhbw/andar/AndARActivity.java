@@ -21,34 +21,33 @@ package edu.dhbw.andar;
 
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.List;
 
 
+import edu.dhbw.andar.exceptions.AndARException;
 import edu.dhbw.andar.exceptions.AndARRuntimeException;
 import edu.dhbw.andar.interfaces.OpenGLRenderer;
+import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andar.util.IO;
+import edu.dhbw.andopenglcam.R;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
-import android.hardware.Camera.PreviewCallback;
+import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 
 public abstract class AndARActivity extends Activity implements Callback, UncaughtExceptionHandler{
@@ -62,6 +61,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	private CameraStatus camStatus = new CameraStatus();
 	private boolean surfaceCreated = false;
 	private SurfaceHolder mSurfaceHolder = null;
+	private Preview previewSurface;
 
 	
     /** Called when the activity is first created. */
@@ -83,7 +83,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 			throw new AndARRuntimeException(e.getMessage());
 		}
 		FrameLayout frame = new FrameLayout(this);
-		Preview preview = new Preview(this);
+		previewSurface = new Preview(this);
 				
         glSurfaceView = new GLSurfaceView(this);
 		renderer = new AndARRenderer(res, artoolkit, this);
@@ -91,10 +91,9 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         glSurfaceView.setRenderer(renderer);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         glSurfaceView.getHolder().addCallback(this);
-        //setContentView(glSurfaceView);
-        //addContentView(glSurfaceView, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        
         frame.addView(glSurfaceView);
-        frame.addView(preview);
+        frame.addView(previewSurface);
         
         setContentView(frame);
         //if(Config.DEBUG)
@@ -174,29 +173,63 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     	super.onStop();
     }
     
+    /**
+     * Open the camera.
+     */
     private void openCamera()  {
     	if (camera == null) {
 	    	//camera = Camera.open();
     		camera = CameraHolder.instance().open();
+    		Parameters params = camera.getParameters();    		    		
+    		
     		
     		try {
 				camera.setPreviewDisplay(mSurfaceHolder);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-    		
-	        Parameters params = camera.getParameters();
-	        //reduce preview frame size for performance reasons
-	        params.setPreviewSize(240,160);
+			
+			//reduce preview frame size for performance reasons
+			if (Integer.parseInt(Build.VERSION.SDK) >= 5) {
+				//since SDK 5 web can query the available preview sizes
+				//let's choose the smallest available preview size
+				List<Size> sizes = params.getSupportedPreviewSizes();
+				//TODO fix optimal size stuff -> in renderer
+				/*Size optimalSize = GraphicsUtil.getOptimalPreviewSize(sizes, 
+					previewSurface.getWidth(), previewSurface.getHeight());
+					//params.setPreviewSize(optimalSize.width,optimalSize.height);*/
+				Size testSize = camera.new Size(240,160);
+				if(GraphicsUtil.containsSize(sizes, testSize)) {
+					params.setPreviewSize(testSize.width,testSize.height);
+				} else {
+					Size smallest = GraphicsUtil.getSmallestSize(sizes);
+					params.setPreviewSize(smallest.width,smallest.height);
+				}
+			} else {
+				//try to set the preview size to this fixed value
+				params.setPreviewSize(240,160);
+			}	     
 	        try {
 	        	camera.setParameters(params);
 	        } catch(RuntimeException ex) {
 	        	ex.printStackTrace();
 	        }
 	        
+	        //now set the pixel format of the preview frames:
 	        params = camera.getParameters();
-	        //try to set the preview format
-	        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
+	        if (Integer.parseInt(Build.VERSION.SDK) >= 5) {
+	        	//we may query the available pixelformats in newer SDk versions
+	        	List<Integer> supportedFormats = params.getSupportedPreviewFormats();
+	        	int format = CameraPreviewHandler.getBestSupportedFormat(supportedFormats);
+	        	if(format != -1) {
+	        		params.setPreviewFormat(format);
+	        	} else {
+	        		throw new AndARRuntimeException(res.getString(R.string.error_unkown_pixel_format));
+	        	}
+	        } else {
+	        	 //try to set the preview format
+		        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
+	        }   
 	        try {
 	        	camera.setParameters(params);
 	        } catch(RuntimeException ex) {
@@ -225,7 +258,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     /**
      * Open the camera and start detecting markers.
      */
-    public void startPreview() {
+    private void startPreview() {
     	if(!surfaceCreated) return;
     	if(mPausing || isFinishing()) return;
     	if (camStatus.previewing) stopPreview();
@@ -237,7 +270,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     /**
      * Close the camera and stop detecting markers.
      */
-    public void stopPreview() {
+    private void stopPreview() {
     	if (camera != null && camStatus.previewing ) {
     		camStatus.previewing = false;
             camera.stopPreview();
@@ -251,19 +284,6 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		/*if (Integer.parseInt(Build.VERSION.SDK) < 4) {
-        	//for android 1.5 compatibilty reasons:
-			 try {
-				 if(holder != null && camera != null)
-					 camera.setPreviewDisplay(holder);
-			 } catch (IOException e1) {
-			        e1.printStackTrace();
-			 }
-        }*/
-		// We need to save the holder for later use, even when the mCameraDevice
-        // is null. This could happen if onResume() is invoked after this
-        // function.
-        //mSurfaceHolder = holder;
 		
 	}
 
@@ -312,6 +332,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	class Preview extends SurfaceView implements SurfaceHolder.Callback {
 	    SurfaceHolder mHolder;
 	    Camera mCamera;
+	    private int w;
+	    private int h;
 	    
 	    Preview(Context context) {
 	        super(context);
@@ -336,8 +358,18 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	    }
 
 	    public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+	    	this.w=w;
+	    	this.h=h;
 	    	mSurfaceHolder = holder;
 	    	startPreview();
+	    }
+	    
+	    public int getScreenWidth() {
+	    	return w;
+	    }
+	    
+	    public int getScreenHeight() {
+	    	return h;
 	    }
 
 	}

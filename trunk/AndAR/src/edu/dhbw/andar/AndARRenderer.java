@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -41,9 +40,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Bitmap.Config;
-import android.hardware.Camera.Size;
 import android.opengl.GLDebugHelper;
-import android.opengl.GLUtils;
 import android.opengl.GLSurfaceView.Renderer;
 import android.util.Log;
 
