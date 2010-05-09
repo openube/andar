@@ -29,7 +29,6 @@ import edu.dhbw.andar.exceptions.AndARRuntimeException;
 import edu.dhbw.andar.interfaces.OpenGLRenderer;
 import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andar.util.IO;
-import edu.dhbw.andopenglcam.R;
 
 import android.app.Activity;
 import android.content.Context;
@@ -180,7 +179,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     	if (camera == null) {
 	    	//camera = Camera.open();
     		camera = CameraHolder.instance().open();
-    		Parameters params = camera.getParameters();    		    		
+    		   		    		
     		
     		
     		try {
@@ -190,51 +189,67 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 			}
 			
 			//reduce preview frame size for performance reasons
-			if (Integer.parseInt(Build.VERSION.SDK) >= 5) {
-				//since SDK 5 web can query the available preview sizes
-				//let's choose the smallest available preview size
-				List<Size> sizes = params.getSupportedPreviewSizes();
-				//TODO fix optimal size stuff -> in renderer
-				/*Size optimalSize = GraphicsUtil.getOptimalPreviewSize(sizes, 
-					previewSurface.getWidth(), previewSurface.getHeight());
-					//params.setPreviewSize(optimalSize.width,optimalSize.height);*/
-				Size testSize = camera.new Size(240,160);
-				if(GraphicsUtil.containsSize(sizes, testSize)) {
-					params.setPreviewSize(testSize.width,testSize.height);
-				} else {
-					Size smallest = GraphicsUtil.getSmallestSize(sizes);
-					params.setPreviewSize(smallest.width,smallest.height);
-				}
-			} else {
+//			if (Integer.parseInt(Build.VERSION.SDK) >= 5) {
+//				Parameters params = camera.getParameters(); 
+//				//since SDK 5 web can query the available preview sizes
+//				//let's choose the smallest available preview size
+//				List<Size> sizes = params.getSupportedPreviewSizes();
+//				//TODO fix optimal size stuff -> in renderer
+//				/*Size optimalSize = GraphicsUtil.getOptimalPreviewSize(sizes, 
+//					previewSurface.getWidth(), previewSurface.getHeight());
+//					//params.setPreviewSize(optimalSize.width,optimalSize.height);*/
+//				Size testSize = camera.new Size(240,160);
+//				if(GraphicsUtil.containsSize(sizes, testSize)) {
+//					params.setPreviewSize(testSize.width,testSize.height);
+//				} else {
+//					Size smallest = GraphicsUtil.getSmallestSize(sizes);
+//					params.setPreviewSize(smallest.width,smallest.height);
+//				}
+//				try {
+//		        	camera.setParameters(params);
+//		        } catch(RuntimeException ex) {
+//		        	ex.printStackTrace();
+//		        }
+//			} else {
+				Parameters params = camera.getParameters(); 
 				//try to set the preview size to this fixed value
 				params.setPreviewSize(240,160);
-			}	     
-	        try {
-	        	camera.setParameters(params);
-	        } catch(RuntimeException ex) {
-	        	ex.printStackTrace();
-	        }
+				try {
+		        	camera.setParameters(params);
+		        } catch(RuntimeException ex) {
+		        	ex.printStackTrace();
+		        }
+			//}	     
 	        
-	        //now set the pixel format of the preview frames:
-	        params = camera.getParameters();
-	        if (Integer.parseInt(Build.VERSION.SDK) >= 5) {
-	        	//we may query the available pixelformats in newer SDk versions
-	        	List<Integer> supportedFormats = params.getSupportedPreviewFormats();
-	        	int format = CameraPreviewHandler.getBestSupportedFormat(supportedFormats);
-	        	if(format != -1) {
-	        		params.setPreviewFormat(format);
-	        	} else {
-	        		throw new AndARRuntimeException(res.getString(R.string.error_unkown_pixel_format));
-	        	}
-	        } else {
+	        
+//	        //now set the pixel format of the preview frames:
+//	        if (Integer.parseInt(Build.VERSION.SDK) >= 5) {
+//	        	Parameters params = camera.getParameters(); 
+//	        	//we may query the available pixelformats in newer SDk versions
+//	        	List<Integer> supportedFormats = params.getSupportedPreviewFormats();
+//	        	int format = CameraPreviewHandler.getBestSupportedFormat(supportedFormats);
+//	        	if(format != -1) {
+//	        		params.setPreviewFormat(format);
+//	        	} else {
+//	        		throw new AndARRuntimeException(res.getString(R.string.error_unkown_pixel_format));
+//	        	}
+//	        	try {
+//		        	camera.setParameters(params);
+//		        } catch(RuntimeException ex) {
+//		        	ex.printStackTrace();
+//		        }
+//	        } else {
+	        	//Parameters 
+	        	params = camera.getParameters(); 
 	        	 //try to set the preview format
 		        params.setPreviewFormat(PixelFormat.YCbCr_420_SP);
-	        }   
-	        try {
-	        	camera.setParameters(params);
-	        } catch(RuntimeException ex) {
-	        	ex.printStackTrace();
-	        }	        
+		        try {
+		        	camera.setParameters(params);
+		        } catch(RuntimeException ex) {
+		        	ex.printStackTrace();
+		        }
+	       // }  
+	        
 	        if(!Config.USE_ONE_SHOT_PREVIEW) {
 	        	camera.setPreviewCallback(cameraHandler);	 
 	        } 

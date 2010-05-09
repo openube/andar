@@ -118,7 +118,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 			if(integer.intValue() == PixelFormat.YCbCr_420_SP) {
 				//alright the optimal format is supported..let's return
 				format = PixelFormat.YCbCr_420_SP;
-				return -1;
+				return format;
 			} else if(integer.intValue() == PixelFormat.YCbCr_422_SP) {
 				format = PixelFormat.YCbCr_422_SP;
 				//this format is not optimal. do not return, a better format might be in the list.
@@ -249,7 +249,8 @@ public class CameraPreviewHandler implements PreviewCallback {
 					} catch (InterruptedException e) {}
 				}
 				newFrame = false;
-				Log.d("ConversionWorker","starting conversion");
+				if(Config.DEBUG)
+					Log.d("ConversionWorker","starting conversion");
 				synchronized (modeLock) {
 					switch(mode) {
 					case MODE_RGB:
