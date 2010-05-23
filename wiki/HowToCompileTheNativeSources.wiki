@@ -6,7 +6,7 @@ The AndAR project contains some native C sources. This page describes how to com
 
 
 = Details =
-== Since NDK r4 ==
+== Since NDK {{{r4}}} ==
  # Install the android [http://developer.android.com/sdk/ndk/index.html NDK]
  # (windows only) Install [http://www.cygwin.com/ Cygwin]
  # Open the Cygwin shell or some other shell on a linux system
@@ -16,7 +16,7 @@ The AndAR project contains some native C sources. This page describes how to com
  # Refesh your project in Eclipse (right-click -> refresh)
  # If everything went smoothly your libs/armeabi folder should contain `.so` files
 
-== Before NDK r4 ==
+== Before NDK {{{r4}}} ==
 
  # Install the android [http://developer.android.com/sdk/ndk/index.html NDK]
  # (windows only) Install [http://www.cygwin.com/ Cygwin]
