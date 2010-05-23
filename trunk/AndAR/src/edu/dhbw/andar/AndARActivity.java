@@ -19,16 +19,21 @@
  */
 package edu.dhbw.andar;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Date;
 import java.util.List;
 
 
 import edu.dhbw.andar.exceptions.AndARException;
 import edu.dhbw.andar.exceptions.AndARRuntimeException;
 import edu.dhbw.andar.interfaces.OpenGLRenderer;
+import edu.dhbw.andar.pub.CustomActivity;
 import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andar.util.IO;
+import edu.dhbw.andopenglcam.R;
 
 import android.app.Activity;
 import android.content.Context;
@@ -36,18 +41,22 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
+import android.graphics.Bitmap.CompressFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 public abstract class AndARActivity extends Activity implements Callback, UncaughtExceptionHandler{
 	private GLSurfaceView glSurfaceView;
@@ -61,6 +70,15 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	private boolean surfaceCreated = false;
 	private SurfaceHolder mSurfaceHolder = null;
 	private Preview previewSurface;
+	private boolean startPreviewRightAway;
+	
+	public AndARActivity() {
+		startPreviewRightAway = true;
+	}
+	
+	public AndARActivity(boolean startPreviewRightAway) {
+		this.startPreviewRightAway = startPreviewRightAway;
+	}
 
 	
     /** Called when the activity is first created. */
@@ -95,8 +113,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         frame.addView(previewSurface);
         
         setContentView(frame);
-        //if(Config.DEBUG)
-        //	Debug.startMethodTracing("AndAR");
+        if(Config.DEBUG)
+        	Debug.startMethodTracing("AndARBeforeNewNDK");
     }
     
     
@@ -151,8 +169,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     protected void onDestroy() {
     	super.onDestroy();    	
     	System.runFinalization();
-    	//if(Config.DEBUG)
-    	//	Debug.stopMethodTracing();
+    	if(Config.DEBUG)
+    		Debug.stopMethodTracing();
     }
     
     
@@ -213,7 +231,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 //			} else {
 				Parameters params = camera.getParameters(); 
 				//try to set the preview size to this fixed value
-				params.setPreviewSize(240,160);
+				//params.setPreviewSize(240,160);
 				try {
 		        	camera.setParameters(params);
 		        } catch(RuntimeException ex) {
@@ -272,8 +290,9 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
     
     /**
      * Open the camera and start detecting markers.
+     * note: You must assure that the preview surface already exists!
      */
-    private void startPreview() {
+    public void startPreview() {
     	if(!surfaceCreated) return;
     	if(mPausing || isFinishing()) return;
     	if (camStatus.previewing) stopPreview();
@@ -334,7 +353,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	 */
 	public Bitmap takeScreenshot() {
 		return renderer.takeScreenshot();
-	}
+	}	
 	
 	/**
 	 * 
@@ -376,7 +395,8 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
 	    	this.w=w;
 	    	this.h=h;
 	    	mSurfaceHolder = holder;
-	    	startPreview();
+	    	if(startPreviewRightAway)
+	    		startPreview();
 	    }
 	    
 	    public int getScreenWidth() {

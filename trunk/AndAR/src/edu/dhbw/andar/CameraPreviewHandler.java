@@ -157,9 +157,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		//frame = new byte[textureSize*textureSize*3];
 		bwSize = previewFrameWidth * previewFrameHeight;
 		frame = new byte[bwSize*3];		
-		for (int i = 0; i < frame.length; i++) {
-			frame[i]=(byte) 128;
-		}
+		
 		frameBuffer = GraphicsUtil.makeByteBuffer(frame.length);
 		frameSink.setPreviewFrameSize(textureSize, previewFrameWidth, previewFrameHeight);
 		markerInfo.setImageSize(previewFrameWidth, previewFrameHeight);

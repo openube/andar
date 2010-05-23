@@ -112,6 +112,7 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		this.markerInfo = markerInfo;
 		this.activity = activity;
 	}
+	
 
 	/* (non-Javadoc)
 	 * @see android.opengl.GLSurfaceView.Renderer#onDrawFrame(javax.microedition.khronos.opengles.GL10)
@@ -315,6 +316,7 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 				 0.0f, 0.0f,
 				 ((float)realWidth)/textureSize, 0.0f			 
 			};		
+		textureBuffer= makeFloatBuffer(textureCoords);		
 	}
 	
 	private void initializeTexture (GL10 gl) {
