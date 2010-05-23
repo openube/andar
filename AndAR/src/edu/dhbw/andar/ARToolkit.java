@@ -90,7 +90,7 @@ public class ARToolkit {
 	public synchronized void registerARObject(ARObject arobject) 
 		throws AndARException{	
 		if(arobjects.contains(arobject)) 
-			return;//don't register the some object twice
+			return;//don't register the same object twice
 		try {
 			//transfer pattern file to private space
 			IO.transferFileToPrivateFS(baseFolder,
