@@ -1,0 +1,13 @@
+#summary Add project's that make use of AndAR here.
+
+= Introduction =
+
+Add project's that make use of AndAR here
+
+
+= Details =
+
+==AndAR Model Viewer==
+An app to view wavefront obj 3d models on Augmented Reality markers. 
+|| Screenshot:|| In the market:||
+||<img src="http://andar.googlecode.com/files/screenshot_model.jpg" />||<img src="http://andar.googlecode.com/files/andarqrcode.png" />||
