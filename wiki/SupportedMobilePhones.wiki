@@ -1,4 +1,5 @@
 #summary A list of mobile phones supported by AndAR.
+#labels Featured
 
 = Introduction =
 
