@@ -1,0 +1,13 @@
+#summary A list of mobile phones supported by AndAR.
+
+= Introduction =
+
+A list of mobile phones supported by AndAR.
+
+
+= Details =
+
+|| *Phone*  || *works?* || *Comment*  ||
+|| Nexus one  || y ||   ||
+|| T-Mobile G1  || y ||   ||
+|| Motorola Milestone  || n || see [http://code.google.com/p/andar/issues/detail?id=14 Issue 14]  ||
