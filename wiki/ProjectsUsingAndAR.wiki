@@ -1,4 +1,5 @@
 #summary Add project's that make use of AndAR here.
+#labels Featured
 
 = Introduction =
 
