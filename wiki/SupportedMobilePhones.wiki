@@ -13,3 +13,4 @@ A list of mobile phones supported by AndAR.
 || T-Mobile G1  || y ||   ||
 || HTC Legend || y ||   ||
 || Motorola Milestone  || n || see [http://code.google.com/p/andar/issues/detail?id=14 Issue 14]  ||
+||Xperia X10||n||unkown reason, could someone file a bug report? :D||
