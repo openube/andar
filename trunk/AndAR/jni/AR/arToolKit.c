@@ -535,7 +535,7 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 #ifdef DEBUG_LOGGING
         __android_log_write(ANDROID_LOG_INFO,"AR native","releasing image array");
 #endif
-    return k;
+    return marker_num;
 }
 
 
