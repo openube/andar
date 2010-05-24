@@ -10,7 +10,7 @@ A list of mobile phones supported by AndAR.
 
 || *Phone*  || *works?* || *Comment*  ||
 || Nexus one/HTC Desire  || y ||   ||
-|| T-Mobile G1  || y ||   ||
+|| T-Mobile G1/HTC Dream   || y ||   ||
 || HTC Legend || y ||   ||
 || Motorola Milestone  || n || see [http://code.google.com/p/andar/issues/detail?id=14 Issue 14]  ||
 ||Xperia X10||n||unkown reason, could someone file a bug report? :D||
