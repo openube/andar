@@ -9,7 +9,11 @@ import java.util.List;
 import android.hardware.Camera.Size;
 
 public class GraphicsUtil {
-	private final static double epsilon = 0.001;
+	//private final static double epsilon = 0.001;
+	//this epsilon being so large is intended, as often there will not be an adequate resolution with
+	//the correct aspect ratio available
+	//so we trade the correct aspect ratio for faster rendering
+	private final static double epsilon = 0.17;
 	
 	/**
 	 * Make a direct NIO FloatBuffer from an array of floats
@@ -79,6 +83,8 @@ public class GraphicsUtil {
 					} else {
 						optimalSize = currSize;
 					}
+				}else {
+					optimalSize = currSize;
 				}
 				
 			}
