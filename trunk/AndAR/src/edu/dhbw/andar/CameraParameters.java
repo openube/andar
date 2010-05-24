@@ -32,6 +32,7 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.Size;
 import android.os.Build;
+import android.util.Log;
 
 /**
  * Only the newer versions of the SDK support querying the available preview
@@ -84,6 +85,7 @@ public class CameraParameters {
 					Size currentSize = params.getPreviewSize();
 					if (!(optimalSize.height == currentSize.height && optimalSize.width == currentSize.width)) {
 						// the optimal size was not set, yet. so let's do so now
+						Log.d("AndAR", "'query preview sizes' available, setting size to: "+width+" x "+height);
 						params.setPreviewSize(optimalSize.width,
 								optimalSize.height);
 						try {
@@ -123,18 +125,20 @@ public class CameraParameters {
 			try {
 				supportedFormats = (List<Integer>) getSupportedPreviewFormats
 						.invoke(params, (Object[]) null);
-				int format = CameraPreviewHandler
-						.getBestSupportedFormat(supportedFormats);
-				if (format != -1) {
-					params.setPreviewFormat(format);
-					try {
-						camera.setParameters(params);
-					} catch (RuntimeException ex) {
-						ex.printStackTrace();
-					}
-				} else {
-					throw new AndARRuntimeException("Unkown pixel format");
-				}				
+				if(supportedFormats != null) {
+					int format = CameraPreviewHandler
+							.getBestSupportedFormat(supportedFormats);
+					if (format != -1) {
+						params.setPreviewFormat(format);
+						try {
+							camera.setParameters(params);
+						} catch (RuntimeException ex) {
+							ex.printStackTrace();
+						}
+					} else {
+						throw new AndARRuntimeException("Unkown pixel format");
+					}	
+				}
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {

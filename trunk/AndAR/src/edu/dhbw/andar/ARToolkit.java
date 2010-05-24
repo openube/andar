@@ -28,6 +28,7 @@ import java.util.Vector;
 import javax.microedition.khronos.opengles.GL10;
 
 import edu.dhbw.andar.exceptions.AndARException;
+import edu.dhbw.andar.interfaces.MarkerVisibilityListener;
 import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andar.util.IO;
 
@@ -64,6 +65,7 @@ public class ARToolkit {
 	 */
 	private Object transMatMonitor = new Object();
 	private DetectMarkerWorker detectMarkerWorker = new DetectMarkerWorker();
+	private MarkerVisibilityListener visListener = null;
 	private Vector<ARObject> arobjects = new Vector<ARObject>();
 	/**
 	 * absolute path of the local files:
@@ -242,9 +244,18 @@ public class ARToolkit {
 		}
 	}
 	
+	
+	
+	public void setVisListener(MarkerVisibilityListener visListener) {
+		this.visListener = visListener;
+	}
+
+
+
 	class DetectMarkerWorker extends Thread {
 		private byte[] curFrame;
 		private boolean newFrame = false;
+		private int lastNumMarkers=0;
 		
 		/**
 		 * 
@@ -270,7 +281,19 @@ public class ARToolkit {
 				}
 				newFrame = false;
 				//the monitor is locked inside the method
-				artoolkit_detectmarkers(curFrame, transMatMonitor);
+				int currNumMakers = artoolkit_detectmarkers(curFrame, transMatMonitor);
+				if(lastNumMarkers > 0 && currNumMakers > 0) {
+					//visible
+				} else if(lastNumMarkers == 0 && currNumMakers > 0) {
+					//detected a marker
+					if(visListener != null)
+						visListener.makerVisibilityChanged(true);
+				} else if(lastNumMarkers > 0 && currNumMakers == 0) {
+					//lost the marker
+					if(visListener != null)
+						visListener.makerVisibilityChanged(false);
+				}
+				lastNumMarkers = currNumMakers;
 			}
 		}
 		

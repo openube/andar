@@ -36,6 +36,7 @@ import android.opengl.GLSurfaceView;
 import android.util.Log;
 import edu.dhbw.andar.exceptions.AndARException;
 import edu.dhbw.andar.exceptions.AndARRuntimeException;
+import edu.dhbw.andar.interfaces.MarkerVisibilityListener;
 import edu.dhbw.andar.interfaces.PreviewFrameSink;
 import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andopenglcam.R;
@@ -169,6 +170,7 @@ public class CameraPreviewHandler implements PreviewCallback {
 		if(focusHandler == null) {
 			focusHandler = new AutoFocusHandler(camera);
 			focusHandler.start();
+			markerInfo.setVisListener(focusHandler);
 		}
 	}
 
@@ -338,9 +340,14 @@ public class CameraPreviewHandler implements PreviewCallback {
 		}
 	}
 
-	class AutoFocusHandler extends Thread implements AutoFocusCallback {
+	class AutoFocusHandler extends Thread implements AutoFocusCallback, MarkerVisibilityListener {
 		
 		private Camera camera;
+		private long lastScan;
+		private static final int MIN_TIME = 1500;
+		private static final int ENSURE_TIME = 10000;
+		
+		private boolean visible = false;
 		
 		public AutoFocusHandler(Camera camera) {
 			this.camera = camera;
@@ -350,13 +357,25 @@ public class CameraPreviewHandler implements PreviewCallback {
 		public synchronized void run() {
 			super.run();
 			setName("Autofocus handler");
+			//do an initial auto focus
+			if(camStatus.previewing) {
+				camera.autoFocus(this);
+				lastScan = System.currentTimeMillis();
+			}
 			while(threadsRunning) {
-				if(camStatus.previewing)
-					camera.autoFocus(this);
 				try {
-					wait(20000);
+					wait(ENSURE_TIME);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+				}
+				long currTime = System.currentTimeMillis();
+				//if at least ENSURE_TIME has passed since the last scan
+				//and no marker is visible, do an scan
+				if(!visible && (currTime-lastScan)>ENSURE_TIME) {
+					if(camStatus.previewing)  {
+						camera.autoFocus(this);
+						lastScan = currTime;
+					}
 				}
 				yield();
 			}
@@ -365,6 +384,20 @@ public class CameraPreviewHandler implements PreviewCallback {
 		@Override
 		public void onAutoFocus(boolean arg0, Camera arg1) {
 			
+		}
+
+		@Override
+		public void makerVisibilityChanged(boolean visible) {
+			this.visible = visible;
+			if(!visible) {
+				long currTime = System.currentTimeMillis();
+				if((currTime-lastScan)>MIN_TIME) {
+					if(camStatus.previewing) {
+						camera.autoFocus(this);
+						lastScan = currTime;
+					}
+				}	
+			}
 		}
 	}
 	
