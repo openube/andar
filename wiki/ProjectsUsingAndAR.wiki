@@ -3,7 +3,8 @@
 
 = Introduction =
 
-Add project's that make use of AndAR here
+Add project's that make use of AndAR here. Do you have a project that makes use of AndAR?
+send an email to tdomhan at gmail.com and I will add it to this list.
 
 
 = Details =
