@@ -40,6 +40,10 @@ public class CustomRenderer implements OpenGLRenderer {
 		gl.glLightfv(GL10.GL_LIGHT1, GL10.GL_SPECULAR, specularLightBuffer1);
 		gl.glLightfv(GL10.GL_LIGHT1, GL10.GL_POSITION, lightPositionBuffer1);
 		gl.glEnable(GL10.GL_LIGHT1);
+		
+		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+	    gl.glDisable(GL10.GL_TEXTURE_2D);
+	    
 		initGL(gl);
 	}
 	
