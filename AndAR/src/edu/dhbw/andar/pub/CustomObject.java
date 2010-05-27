@@ -68,8 +68,7 @@ public class CustomObject extends ARObject {
 	    //draw cube
 	    gl.glColor4f(0, 1.0f, 0, 1.0f);
 	    gl.glTranslatef( 0.0f, 0.0f, 12.5f );
-	    gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-	    gl.glDisable(GL10.GL_TEXTURE_2D);
+	    
 	    
 	    box.draw(gl);
 	}
