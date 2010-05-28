@@ -1,11 +1,11 @@
 #summary This page describes how someone can build augmented reality applications using AndAR.
 
-= Introduction =
+= License=
 
 The whole project is released under the *GNU General Public License*. This means it can be used in any project that is itself released under the GPL. If you would like to create a commercial application based on AndAR please contact [http://www.artoolworks.com/Home.html ARToolworks].
 
 
-= Details =
+= Howto =
 
 Note: THIS IS NOT WORKING WITH THE NEW SDK! I'M GOING TO CREATE A LIBRARY PROJECT THOUGH, STAY TUNED!
 
