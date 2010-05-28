@@ -7,8 +7,6 @@ The whole project is released under the *GNU General Public License*. This means
 
 = Howto =
 
-Note: THIS IS NOT WORKING WITH THE NEW SDK! I'M GOING TO CREATE A LIBRARY PROJECT THOUGH, STAY TUNED!
-
  * [http://www.eclipse.org/downloads/ Download] and install [http://www.eclipse.org/ Eclipse].(Eclipse IDE for Java Developers)
  * Install the Android Plugin for Eclipse, as described in the [http://developer.android.com/guide/developing/eclipse-adt.html Android docs].
  * Download the Eclipse sample project, [http://andar.googlecode.com/files/AndARSampleProject.zip here].
