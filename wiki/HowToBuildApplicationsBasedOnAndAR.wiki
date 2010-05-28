@@ -11,7 +11,7 @@ Note: THIS IS NOT WORKING WITH THE NEW SDK! I'M GOING TO CREATE A LIBRARY PROJEC
 
  * [http://www.eclipse.org/downloads/ Download] and install [http://www.eclipse.org/ Eclipse].(Eclipse IDE for Java Developers)
  * Install the Android Plugin for Eclipse, as described in the [http://developer.android.com/guide/developing/eclipse-adt.html Android docs].
- * Download the Eclipse sample project, [http://code.google.com/p/andar/downloads/detail?name=AndARSampleProject2.zip&can=2&q= here].
+ * Download the Eclipse sample project, [http://code.google.com/p/andar/downloads/detail?name=AndARSampleProject.zip&can=2&q= here].
  * Unzip it somewhere
  * Now start Eclipse.
  * File -> Import
