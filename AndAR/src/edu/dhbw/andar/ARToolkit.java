@@ -21,23 +21,19 @@ package edu.dhbw.andar;
 
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.res.Resources;
+import android.util.Log;
 import edu.dhbw.andar.exceptions.AndARException;
 import edu.dhbw.andar.interfaces.MarkerVisibilityListener;
 import edu.dhbw.andar.util.GraphicsUtil;
 import edu.dhbw.andar.util.IO;
-
-import android.content.Context;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
-import android.content.res.Resources;
-import android.util.AndroidRuntimeException;
-import android.util.Log;
 
 /**
  * Interface to the ARToolkit.
@@ -65,7 +61,7 @@ public class ARToolkit {
 	 */
 	private Object transMatMonitor = new Object();
 	private DetectMarkerWorker detectMarkerWorker = new DetectMarkerWorker();
-	private MarkerVisibilityListener visListener = null;
+	private List<MarkerVisibilityListener> visListeners = new ArrayList<MarkerVisibilityListener>();
 	private Vector<ARObject> arobjects = new Vector<ARObject>();
 	/**
 	 * absolute path of the local files:
@@ -246,8 +242,18 @@ public class ARToolkit {
 	
 	
 	
-	public void setVisListener(MarkerVisibilityListener visListener) {
-		this.visListener = visListener;
+	/** 
+	 * @param visListener listener to add to the registered listeners.
+	 * @deprecated Use addVisibilityListener instead.
+	 */
+	@Deprecated
+	public void setVisListener(MarkerVisibilityListener visListener) {		
+		this.visListeners.add(visListener);
+	}
+	
+	public void addVisibilityListener(
+			MarkerVisibilityListener markerVisibilityListener) {
+		visListeners.add(markerVisibilityListener);		
 	}
 
 
@@ -286,14 +292,18 @@ public class ARToolkit {
 					//visible
 				} else if(lastNumMarkers == 0 && currNumMakers > 0) {
 					//detected a marker
-					if(visListener != null)
-						visListener.makerVisibilityChanged(true);
+					notifyChange(true);
 				} else if(lastNumMarkers > 0 && currNumMakers == 0) {
 					//lost the marker
-					if(visListener != null)
-						visListener.makerVisibilityChanged(false);
+					notifyChange(false);
 				}
 				lastNumMarkers = currNumMakers;
+			}
+		}
+		
+		private void notifyChange(boolean visible) {
+			for (final MarkerVisibilityListener visListener : visListeners) {
+				visListener.makerVisibilityChanged(visible);
 			}
 		}
 		
