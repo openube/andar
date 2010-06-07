@@ -18,3 +18,4 @@ A list of mobile phones supported by AndAR.
 || HTC Magic  || 1.6 || n || see Issue 14 needs confirmation/details||
 || Motorola Milestone || 2.0.x/2.1 || y || fixed  ||
 ||Xperia X10 || ?? ||n||see [http://code.google.com/p/andar/issues/detail?id=18 Issue 18] needs confirmation/details||
+|| Samsung Galaxy Spica  || 2.1 ?? || y ||  ||
