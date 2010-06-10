@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">AndAR Model Viewer</string>
+<string name="select_model_file">Wählen Sie eine .obj Datei aus:</string>
+<string name="android_markt_not_avail">Der Android Marktplatz ist nicht verfügbar, daher müssen Sie den OI File Manager von Hand installieren.</string>
+<string name="pickfile_intent_required">Sie müssen den OI File Manager installieren, um diese Anwendung nutzen zu können.</string>
+<string name="file_doesnt_exist">Diese Datei gibt es nicht!</string>
+<string name="unknown_file_type">Dieser Dateityp wird nicht unterstützt.</string>
+<string name="rotate">Rotieren</string>
+<string name="translate">Verschieben</string>
+<string name="scale">Skalieren</string>
+
+
+
+
+<string name="loading">Lädt...</string>
+<string name="app_description">AndAR Model Viewer ermöglicht es wavefront obj 3D-Modelle auf Augmented Reality Markern darzustellen.</string>
+<string name="take_screenshot">Screenshot aufnehmen</string>
+<string name="screenshotsaved">Screenshot gespeichert!</string>
+<string name="screenshotfailed">Speichern des Screenshots fehlgeschlagen: </string>
+<string name="choose_custom_model">Eigene Modelldatei auswählen</string>
+<string name="instructions">Anleitung</string>
+<string name="wrong_file">Wählen Sie eine .obj Datei aus!</string>
+<string name="choose_a_model">Wählen Sie ein 3D-Modell aus:</string>
+<string name="help">Hilfe:</string>
+<string name="custom_model">Eigene 3D-Modelle:</string>
+
+</resources>

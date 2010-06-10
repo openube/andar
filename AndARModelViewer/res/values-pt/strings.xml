@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name"> AndAR Model Viewer </string>
+<string name="select_model_file">Selecione um arquivo de modelo:</string>
+<string name="android_markt_not_avail">A loja Android não está disponível, você precisa instalar o OI File Manager manualmente.</string>
+<string name="pickfile_intent_required">Você  precisa instalar o OI File Manager para poder usar esse aplicativo.</string>
+<string name="file_doesnt_exist">Esse arquivo não existe!</string>
+<string name="unknown_file_type"> Tipo de arquivo desconhecido!</string>
+<string name="rotate">Rotacionar</string>
+<string name="translate">Traduzir</string>
+<string name="scale">Escalonar</string> 
+<string name="loading">Carregando. Por favor aguarde...</string>
+<string name="app_description"> AndAR permite visualizar modelos wavefront (.obj) em marcadores de Realidade Aumentada.</string>
+<string name="take_screenshot">Tire uma foto</string><string name="screenshotsaved">Foto salva!</string><string name="screenshotfailed">Falha ao tirar foto: </string>
+<string name="choose_custom_model">Selecione um arquivo de modelo</string>
+<string name="select_model">selecione o modelo</string>
+<string name="instructions">Instruções</string>
+<string name="wrong_file">Selecione um modelo arquivo .obj </string>
+<string name="choose_a_model">Escolha o modelo:</string>
+<string name="help">Ajuda:</string>
+<string name="custom_model">Modelo customizado:</string>
+</resources>
