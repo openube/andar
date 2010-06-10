@@ -6,10 +6,8 @@ This that need to be done in the near future.
 
 
 = Details =
- * query the available preview sizes and preview formats and use one that fits our needs 
-   * this function is not available on 1.5/1.6 avoid a VerifyError(Test in the Emulator
- * fix AndAR on milestone 2.1
- * fix unusual preview sizes, like not 240x160 .. does not work currently
- * error handling
-   * are all exceptions forwarded? or some suppressed?
-   * how may a class extending AndARActivity inform the user about those exceptions
+ * create awesome AR applications
+ * preview buffers on froyo phones
+ * vertex buffers objects/frame buffer objects 
+ * color conversion through look up tables, is it worth it?
+ * ...anything you want to add? please say so
