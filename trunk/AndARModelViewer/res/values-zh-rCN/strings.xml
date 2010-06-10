@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">AndAR Model Viewer</string>
+<string name="select_model_file">选择一个模型文件：</string>
+<string name="android_markt_not_avail">Android 市场不可用，你需要手动安装OI文件管理器。</string>
+<string name="pickfile_intent_required">你需要安装OI文件管理器，以使用这个程序。</string>
+<string name="file_doesnt_exist">此文件不存在！</string>
+<string name="unknown_file_type">未知的文件类型！</string>
+<string name="rotate">旋转</string>
+<string name="translate">平移</string>
+<string name="scale">标尺</string>
+
+
+
+
+<string name="loading">加载中。请稍等...</string>
+<string name="app_description">AndAR Model Viewer允许你在一个现实增强的装置中查看Wavefront目标模型。</string>
+<string name="take_screenshot">截屏</string><string name="screenshotsaved">已保存截屏！</string><string name="screenshotfailed">截屏保存失败：</string>
+<string name="choose_custom_model">选择一个模型文件</string>
+<string name="instructions">游戏介绍</string>
+<string name="wrong_file">选择一个目标模型文件。(.obj)</string>
+<string name="choose_a_model">选择一个模型：</string>
+<string name="help">帮助：</string>
+<string name="custom_model">自定义模型：</string>
+<string name="help_file">index.html</string>
+</resources>
