@@ -13,7 +13,7 @@ A list of mobile phones supported by AndAR.
 || T-Mobile G1/HTC Dream  || 1.5 + 1.6  || y ||   ||
 || Motorola DEXT  || 1.5  || y ||   ||
 || HTC Legend  || 2.1 || y ||  ||
-|| HTC Hero  || ?? || y ||   ||
+|| HTC Hero  || 2.1 || y ||   ||
 || HTC Magic  || 1.5 || y ||   ||
 || HTC Magic  || 1.6 || n || see Issue 14 needs confirmation/details||
 || Motorola Milestone || 2.0.x/2.1 || y || fixed  ||
