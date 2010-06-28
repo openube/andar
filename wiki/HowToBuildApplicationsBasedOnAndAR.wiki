@@ -18,3 +18,39 @@ This section is about the Eclipse sample project, alternatively you may check ou
  * Select the unzipped folder
  * enjoy :D
  * Send me an [mailto:tdomhan@gmail.com email], so that I can add you to the [ProjectsUsingAndAR http://code.google.com/p/andar/wiki/ProjectsUsingAndAR] wiki page.
+
+= AndAR Architecture =
+<img src="http://andar.googlecode.com/files/andararch.png" />
+
+AndAR is an Augmented Reality Framework for Android. It not only oers a pure
+Java API but is also object oriented. The figure above shows a simplied class diagram of
+an application that makes use of AndAR.
+
+Every Android application consists of one or more Activities. An Activity is a visual
+user interface, targeted to a single purpose. Only one may be active at a time. In
+order to write an Augmented Reality application, one has to extend the abstract class
+AndARActivity. This class already handles everything Augmented Reality related,
+like opening the camera, detecting the markers and displaying the video stream. The
+application would run already, by just doing that. However it would not detect any
+markers.
+
+In order to do so, you have to register ARObjects to an instance of ARToolkit. This
+instance can be retrieved from the AndARActivity. The ARObject class itself is abstract.
+This means, it has to be extended, too. It expects the le name of a pattern le
+in it's constructor. This le must be located in the assets folder of the Eclipse project.
+Pattern les can be created by a tool called mk_patt, which is part of the ARToolkit.
+They are used to distinguish dierent markers. In order to draw a custom object, the
+method draw has to be overridden. Before this method is invoked a transformation
+matrix will already have been applied. This means the object will be alligned to the
+marker, without any further steps. This method will not be invoked, if the marker
+belonging to this object is not visible.
+
+The class ARRenderer is reponsible for everything OpenGL related. If you want to mix
+augmented with non augmented 3D objects you may provide a class implementing the
+OpenGLRenderer interface. There are three methods dened by this interface. initGL being called only once, when the OpenGL surface is initialized. Whereas setupEnv is
+called once before the augmented objects are drawn. It can be used to issue OpenGL
+commands that shall eect all ARObjects, like initializing the lighting. In the draw
+method you may draw any non augmented 3D objects. It will be called once for every
+frame. Specifying such the described renderer is optional.
+The AndARActivity furthermore oers a method that allows the application to take
+screenshots.
