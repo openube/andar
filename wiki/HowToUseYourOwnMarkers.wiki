@@ -22,5 +22,5 @@ The tool, that allows you to create those mentioned files, is called {{{mk_patt}
  # Now click into the window.
  # Enter a file name in the command line window.
  # Copy this file into the {{{assets}}} folder of the Eclipse project.
- # Refer to this file through the ARObject's constructor.
+ # Refer to this file through the ARObject's constructor. (ARObject is abstract, so have a look at the class extending it, like the Model class in the AndAR Model Viewer)
  # That's it!
