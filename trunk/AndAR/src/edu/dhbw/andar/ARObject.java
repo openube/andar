@@ -134,18 +134,20 @@ public abstract class ARObject {
 			init(gl);
 			initialized = true;
 		}
-		glMatrixBuffer.put(glMatrix);
-		glMatrixBuffer.position(0);
-		
-		//argDrawMode3D
-		gl.glMatrixMode(GL10.GL_MODELVIEW);
-	    gl.glLoadIdentity();
-	    //argDraw3dCamera
-	    gl.glMatrixMode(GL10.GL_PROJECTION);
-	    gl.glLoadMatrixf( glCameraMatrixBuffer );
-	    
-	    gl.glMatrixMode(GL10.GL_MODELVIEW);
-		gl.glLoadMatrixf(glMatrixBuffer);
+		if(glCameraMatrixBuffer != null) {
+			glMatrixBuffer.put(glMatrix);
+			glMatrixBuffer.position(0);
+			
+			//argDrawMode3D
+			gl.glMatrixMode(GL10.GL_MODELVIEW);
+		    gl.glLoadIdentity();
+		    //argDraw3dCamera
+		    gl.glMatrixMode(GL10.GL_PROJECTION);
+		    gl.glLoadMatrixf( glCameraMatrixBuffer );
+		    
+		    gl.glMatrixMode(GL10.GL_MODELVIEW);
+			gl.glLoadMatrixf(glMatrixBuffer);
+		}
 	}
 	
 	public abstract void init(GL10 gl); 
