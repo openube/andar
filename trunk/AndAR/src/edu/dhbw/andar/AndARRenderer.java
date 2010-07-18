@@ -261,7 +261,8 @@ public class AndARRenderer implements Renderer, PreviewFrameSink{
 		Thread.currentThread().setUncaughtExceptionHandler(activity);
 		
 		markerInfo.initGL(gl);
-		customRenderer.initGL(gl);
+		if(customRenderer != null)
+			customRenderer.initGL(gl);
 	}
 	
 	/**
