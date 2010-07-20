@@ -1,5 +1,6 @@
 package edu.dhbw.andar.pingpong;
 
+import java.io.Writer;
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -11,7 +12,9 @@ import edu.dhbw.andarpong.R;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.opengl.GLDebugHelper;
 import android.opengl.GLUtils;
+import android.util.Log;
 
 /**
  * Representing the GameScore
@@ -40,13 +43,21 @@ public class GameScore implements GameObject {
 	
 	private final float textureCoords[] = 
 	{
-			1f, 0f, 
+			0.5f, 0f, 
 			0f, 0f, 
-			1f,  1f, 
+			0.5f,  1f, 
 			0f, 0f, 
 			0f,  1f, 
-			1f,  1f
+			0.5f,  1f
 		};
+	/*{
+		1f, 0f, 
+		0f, 0f, 
+		1f,  1f, 
+		0f, 0f, 
+		0f,  1f, 
+		1f,  1f
+	};*/
 	/*{
 		0f, 0f, 
 		1f, 0f, 
@@ -148,22 +159,22 @@ public class GameScore implements GameObject {
 	public void update(long time) {
 
 	}
-
+	
+	
 	@Override
 	public void init(GL10 gl) {
 		gl.glGenTextures(5, textureIDs, 0);
 		//load the textures into the graphics memory
 		
 		//colon
-		//Bitmap bm = BitmapFactory.decodeResource(res, R.raw.colon);
-		Bitmap bm = BitmapFactory.decodeResource(res, R.raw.colon);
+		Bitmap bm = BitmapFactory.decodeResource(res, R.drawable.colon);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[4]);
 		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bm,0);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
 		bm.recycle();
 		//digit 0
-		bm = BitmapFactory.decodeResource(res, R.raw.digit0);
+		bm = BitmapFactory.decodeResource(res, R.drawable.digit0);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[0]);
 		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bm,0);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
@@ -171,7 +182,7 @@ public class GameScore implements GameObject {
 		bm.recycle();
 		
 		//digit 1
-		bm = BitmapFactory.decodeResource(res, R.raw.digit1);
+		bm = BitmapFactory.decodeResource(res, R.drawable.digit1);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[1]);
 		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bm,0);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
@@ -179,7 +190,7 @@ public class GameScore implements GameObject {
 		bm.recycle();
 		
 		//digit 2
-		bm = BitmapFactory.decodeResource(res, R.raw.digit2);
+		bm = BitmapFactory.decodeResource(res, R.drawable.digit2);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[2]);
 		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bm,0);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
@@ -187,7 +198,7 @@ public class GameScore implements GameObject {
 		bm.recycle();
 		
 		//digit 3
-		bm = BitmapFactory.decodeResource(res, R.raw.digit3);
+		bm = BitmapFactory.decodeResource(res, R.drawable.digit3);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[3]);
 		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bm,0);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
@@ -210,5 +221,6 @@ public class GameScore implements GameObject {
 			player = 0;
 		}
 	}
+
 
 }
