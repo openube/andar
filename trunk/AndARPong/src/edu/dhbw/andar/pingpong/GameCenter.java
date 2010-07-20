@@ -92,7 +92,5 @@ public class GameCenter extends ARObject implements GameObject {
 		this.oy = y;
 		this.x = (float)marker_x;
 		this.y = (float)marker_y;
-		double winkel = Math.acos(transmat[0]);
-		Log.d("CENTER_WINKEL",winkel+"");
 	}
 }
