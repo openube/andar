@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      android:versionName="0.1" android:versionCode="1" package="edu.dhbw.andarpong">
+    <application android:debuggable="true" android:icon="@drawable/icon" android:label="@string/app_name" android:description="@string/description">
+        <activity android:label="@string/app_name" android:clearTaskOnLaunch="true" android:screenOrientation="landscape" android:name="edu.dhbw.andar.pingpong.GameActivity" android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+    <uses-sdk android:targetSdkVersion="4" android:minSdkVersion="3"/>
+
+<uses-permission android:name="android.permission.CAMERA"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-feature android:name="android.hardware.camera" />
+<uses-feature android:name="android.hardware.camera.autofocus" />
+<supports-screens android:smallScreens="true" 
+                  android:normalScreens="true"
+                  android:largeScreens="true" 
+                  android:anyDensity="true" /> 
+</manifest> 

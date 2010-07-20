@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">AndAR Pong</string>
+<string name="error_unkown_pixel_format">the camera uses an unkown pixel format.</string><string name="mode_rgb">RGB</string><string name="mode_gray">luminance</string><string name="mode_edges">edges</string><string name="mode_contours">contours</string><string name="mode_bin">binarized</string>
+<string name="description">AndAR is a project that tries to bring Augmented Reality to the android platform.</string>
+<string name="takescreenshot">Take a screenshot.</string>
+<string name="screenshotsaved">Screenshot saved!</string>
+<string name="screenshotfailed">Failed to save screenshot: </string>
+</resources>
