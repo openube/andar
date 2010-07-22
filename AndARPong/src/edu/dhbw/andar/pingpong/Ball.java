@@ -23,10 +23,10 @@ public class Ball implements GameObject{
 	private float oy=0;
 	private double accelerationX = 1.0f;
 	private double accelerationY = 1.0f;
-	private final double INITIAL_SPEED = 0.00000008;
+	private final double INITIAL_SPEED = 0.2;
 	private double speed = INITIAL_SPEED;
 	
-	private final double acceleration = 0.00000000000000001;
+	private final double acceleration = 0.00000001;
 	/**
 	 * velocity x
 	 */
@@ -90,6 +90,7 @@ public class Ball implements GameObject{
 	 */
 	@Override
 	public void update(long time) {
+		time /= 1000000.0;//allows the acceleration and velocity to be bigger, in order to avoid IEEE754 format conflicts
 		ox = x;
 		oy = y;
 		x += time * vx;
@@ -106,6 +107,7 @@ public class Ball implements GameObject{
 		/*speed += acceleration;
 		vy = ((vy>0) ? factorSpeedY : -factorSpeedY) * speed;
 		vx = ((vx>0) ? factorSpeedX : -factorSpeedX) * speed;*/
+		
 		if(vx > 0)
 			vx += accelerationX*time;
 		else 
@@ -123,9 +125,10 @@ public class Ball implements GameObject{
 		oy = 0;
 		x = 0;
 		y = 0;
-		//alpha ca. between -60° and 60°
+		//alpha ca. between 0.4 and 0.8, 0.4 approx. being PI/8
 		double alpha=0.0;
-		while (alpha < 0.4) alpha = random.nextDouble();
+		//while (alpha < 0.4) alpha = random.nextDouble();
+		alpha = random.nextDouble()*0.4+0.4;
 		if(random.nextBoolean())
 			alpha *= -1;
 		double factorSpeedY = Math.sin(alpha);
@@ -175,12 +178,12 @@ public class Ball implements GameObject{
 	
 	public void bounceY() {
 		bounceSoundPlayer.start();
-		vy*=-1;
+		vy*=-1.0;
 	}
 	
 	public void bounceX() {
 		bounceSoundPlayer.start();
-		vx*=-1;
+		vx*=-1.0;
 	}
 
 	@Override
