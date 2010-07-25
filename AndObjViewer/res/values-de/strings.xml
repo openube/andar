@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    
-    <string name="app_name">AndObjViewer</string>
-<string name="select_model_file">Wählen Sie eine Datei aus:</string><string name="android_markt_not_avail">Android markt ist nicht verfügbar, daher müssen Sie den OI File von Hand installieren.</string><string name="pickfile_intent_required">Sie müssen den OI File Manager installieren, um diese Anwendung nutzen zu können.&quot;</string><string name="file_doesnt_exist">Diese Datei gibt es nicht!</string><string name="unknown_file_type">Dieser Dateityp wird nicht unterstützt.</string><string name="rotate">rotieren</string><string name="translate">verschieben</string><string name="scale">skalieren</string>
-</resources>
