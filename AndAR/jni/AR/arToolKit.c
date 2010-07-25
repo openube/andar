@@ -47,6 +47,7 @@ typedef struct {
     int        id;
 //    double     marker_coord[4][2];//not needed anymore -> using the array of the corresponding java object
 //    double     trans[3][4];//not needed anymore -> using the array of the corresponding java object
+    int contF;
     double     marker_width;
     double     marker_center[2];
 	jobject objref;
@@ -205,6 +206,7 @@ JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_addObject
 #endif
 		newObject->name = (int) name;
 		newObject->marker_width = (double) width;
+		newObject->contF = 0;
 		newObject->marker_center[0] = (double) centerArr[0];
 		newObject->marker_center[1] = (double) centerArr[1];
 		newObject->objref = (*env)->NewGlobalRef(env, obj);
@@ -460,6 +462,7 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 		}
 		if( k == -1 ) {
 			//object not visible
+			curObject->contF = 0;
 			(*env)->SetBooleanField(env, curObject->objref, visibleField, JNI_FALSE);
 #ifdef DEBUG_LOGGING
 			__android_log_print(ANDROID_LOG_INFO,"AR native","object %d  not visible, with marker ID %d",curObject->name,curObject->id);
@@ -503,9 +506,12 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
         __android_log_write(ANDROID_LOG_INFO,"AR native","calculating trans mat now");
 #endif
 		// get the transformation between the marker and the real camera 
-		//arGetTransMat(&marker_info[k], curObject->marker_center, curObject->marker_width, curObject->trans);
-		arGetTransMat(&marker_info[k], curObject->marker_center, curObject->marker_width, transMat);
-		//arGetTransMat(&marker_info[k], curObject->marker_center, curObject->marker_width, patt_trans);
+		if( curObject->contF == 0 ) {
+			arGetTransMat(&marker_info[k], curObject->marker_center, curObject->marker_width, transMat);
+		} else {
+			arGetTransMatCont(&marker_info[k], transMat, curObject->marker_center, curObject->marker_width, transMat);
+		}
+		curObject->contF = 1;
 #ifdef DEBUG_LOGGING
         __android_log_write(ANDROID_LOG_INFO,"AR native","calculating OpenGL trans mat now");
 #endif
