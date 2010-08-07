@@ -114,7 +114,7 @@ public abstract class AndARActivity extends Activity implements Callback, Uncaug
         
         setContentView(frame);
         if(Config.DEBUG)
-        	Debug.startMethodTracing("AndARBeforeNewNDK");
+        	Debug.startMethodTracing("AndAR");
     }
     
     

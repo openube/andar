@@ -43,7 +43,6 @@ import edu.dhbw.andar.util.IO;
 public class ARToolkit {
 	private final Resources res;
 	private final String calibFileName = "camera_para.dat";
-	private int markerNum = -1;
 	//private double[] glTransMat = new double[16];
 	private boolean initialized = false;
 	private int screenWidth = 0;
@@ -161,6 +160,25 @@ public class ARToolkit {
 	 * @return number of markers
 	 */
 	private native int artoolkit_detectmarkers(byte[] in, Object transMatMonitor);
+	
+	/**
+	 * Inverse a three by four matrix.
+	 * Matrix has to be 3 by 4! (but is actually a 4 by 4 homogene matrix.)
+	 * @param mat1 contains the matrix to be inversed.
+	 * @param mat2 will contain the resulting matrix.
+	 * @return success?
+	 */
+	public native static int  arUtilMatInv(double[] mat1, double[] mat2);
+	
+	/**
+	 * Multiply one (three by four) matrix by another.
+	 * Matrix has to be 3 by 4! (but is actually a 4 by 4 homogene matrix.)
+	 * @param multiplier
+	 * @param multiplicand
+	 * @param result contains the result, after the method returns.
+	 * @return
+	 */
+	public native static int  arUtilMatMul(double[] multiplier, double[] multiplicand, double[] result);
 	
 	
 	/**
