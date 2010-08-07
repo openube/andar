@@ -545,3 +545,43 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 }
 
 
+/*
+ * Class:     edu_dhbw_andar_ARToolkit
+ * Method:    arUtilMatInv
+ * Signature: ([D[D)I
+ */
+JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_arUtilMatInv
+  (JNIEnv *env, jclass this, jdoubleArray mat1, jdoubleArray mat2) {
+	double 	    *mat1Ptr;
+	double 	    *mat2Ptr;
+	int retval;
+	mat1Ptr = (*env)->GetDoubleArrayElements(env, mat1, JNI_FALSE);
+	mat2Ptr = (*env)->GetDoubleArrayElements(env, mat2, JNI_FALSE);
+	retval = arUtilMatInv(mat1Ptr,mat2Ptr);
+	(*env)->ReleaseDoubleArrayElements(env, mat1, mat1Ptr, 0);
+	(*env)->ReleaseDoubleArrayElements(env, mat2, mat2Ptr, 0);
+	return retval;
+  }
+
+/*
+ * Class:     edu_dhbw_andar_ARToolkit
+ * Method:    arUtilMatMul
+ * Signature: ([D[D[D)I
+ */
+JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_arUtilMatMul
+  (JNIEnv *env, jclass this, jdoubleArray mat1, jdoubleArray mat2, jdoubleArray result) {
+	double 	    *mat1Ptr;
+	double 	    *mat2Ptr;
+	double 	    *resPtr;
+	int retval;
+	mat1Ptr = (*env)->GetDoubleArrayElements(env, mat1, JNI_FALSE);
+	mat2Ptr = (*env)->GetDoubleArrayElements(env, mat2, JNI_FALSE);
+	resPtr = (*env)->GetDoubleArrayElements(env, result, JNI_FALSE);
+	retval = arUtilMatMul(mat1Ptr,mat2Ptr,resPtr);
+	(*env)->ReleaseDoubleArrayElements(env, mat1, mat1Ptr, 0);
+	(*env)->ReleaseDoubleArrayElements(env, mat2, mat2Ptr, 0);
+	(*env)->ReleaseDoubleArrayElements(env, result, resPtr, 0);
+	return retval;
+  }
+
+

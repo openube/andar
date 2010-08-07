@@ -49,11 +49,19 @@ JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_artoolkit_1detectmarkers
 
 /*
  * Class:     edu_dhbw_andar_ARToolkit
- * Method:    draw
- * Signature: ()V
+ * Method:    arUtilMatInv
+ * Signature: ([D[D)I
  */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_ARToolkit_draw
-  (JNIEnv *, jobject);
+JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_arUtilMatInv
+  (JNIEnv *, jclass, jdoubleArray, jdoubleArray);
+
+/*
+ * Class:     edu_dhbw_andar_ARToolkit
+ * Method:    arUtilMatMul
+ * Signature: ([D[D[D)I
+ */
+JNIEXPORT jint JNICALL Java_edu_dhbw_andar_ARToolkit_arUtilMatMul
+  (JNIEnv *, jclass, jdoubleArray, jdoubleArray, jdoubleArray);
 
 #ifdef __cplusplus
 }
