@@ -11,12 +11,6 @@ extern "C" {
 #define edu_dhbw_andar_CameraPreviewHandler_MODE_RGB 0L
 #undef edu_dhbw_andar_CameraPreviewHandler_MODE_GRAY
 #define edu_dhbw_andar_CameraPreviewHandler_MODE_GRAY 1L
-#undef edu_dhbw_andar_CameraPreviewHandler_MODE_BIN
-#define edu_dhbw_andar_CameraPreviewHandler_MODE_BIN 2L
-#undef edu_dhbw_andar_CameraPreviewHandler_MODE_EDGE
-#define edu_dhbw_andar_CameraPreviewHandler_MODE_EDGE 3L
-#undef edu_dhbw_andar_CameraPreviewHandler_MODE_CONTOUR
-#define edu_dhbw_andar_CameraPreviewHandler_MODE_CONTOUR 4L
 /*
  * Class:     edu_dhbw_andar_CameraPreviewHandler
  * Method:    yuv420sp2rgb
@@ -25,30 +19,44 @@ extern "C" {
 JNIEXPORT void JNICALL Java_edu_dhbw_andar_CameraPreviewHandler_yuv420sp2rgb
   (JNIEnv *, jobject, jbyteArray, jint, jint, jint, jbyteArray);
 
-/*
- * Class:     edu_dhbw_andar_CameraPreviewHandler
- * Method:    binarize
- * Signature: ([BII[BI)V
- */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_CameraPreviewHandler_binarize
-  (JNIEnv *, jobject, jbyteArray, jint, jint, jbyteArray, jint);
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler */
 
-/*
- * Class:     edu_dhbw_andar_CameraPreviewHandler
- * Method:    detect_edges
- * Signature: ([BII[BI)V
- */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_CameraPreviewHandler_detect_1edges
-  (JNIEnv *, jobject, jbyteArray, jint, jint, jbyteArray, jint);
+#ifndef _Included_edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler
+#define _Included_edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_MIN_PRIORITY
+#define edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_MIN_PRIORITY 1L
+#undef edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_NORM_PRIORITY
+#define edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_NORM_PRIORITY 5L
+#undef edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_MAX_PRIORITY
+#define edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_MAX_PRIORITY 10L
+#undef edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_MIN_TIME
+#define edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_MIN_TIME 1500L
+#undef edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_ENSURE_TIME
+#define edu_dhbw_andar_CameraPreviewHandler_AutoFocusHandler_ENSURE_TIME 10000L
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS */
 
-/*
- * Class:     edu_dhbw_andar_CameraPreviewHandler
- * Method:    detect_edges_simple
- * Signature: ([BII[BI)V
- */
-JNIEXPORT void JNICALL Java_edu_dhbw_andar_CameraPreviewHandler_detect_1edges_1simple
-  (JNIEnv *, jobject, jbyteArray, jint, jint, jbyteArray, jint);
-
+#ifndef _Included_edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS
+#define _Included_edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS_MIN_PRIORITY
+#define edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS_MIN_PRIORITY 1L
+#undef edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS_NORM_PRIORITY
+#define edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS_NORM_PRIORITY 5L
+#undef edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS_MAX_PRIORITY
+#define edu_dhbw_andar_CameraPreviewHandler_CameraConstFPS_MAX_PRIORITY 10L
 #ifdef __cplusplus
 }
 #endif
