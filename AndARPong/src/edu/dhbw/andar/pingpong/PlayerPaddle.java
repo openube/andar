@@ -2,7 +2,8 @@ package edu.dhbw.andar.pingpong;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.util.Log;
+import edu.dhbw.andar.ARToolkit;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -16,12 +17,15 @@ import android.view.View.OnTouchListener;
 public class PlayerPaddle extends Paddle implements OnTouchListener {
 	
 	private PaddleMarker marker;
+	/**
+	 * The coordinates in the coordinate system of the center marker.
+	 */
+	private double[] coordsInCenterCS = new double[12];
 
 	private float lastTouchX=0;
 	private float lastTouchY=0;
 	
 	private float touchDelta=0;
-	private float factor = 0.8f;
 	
 	
 	
@@ -32,18 +36,12 @@ public class PlayerPaddle extends Paddle implements OnTouchListener {
 	
 	@Override
 	public synchronized void update(long time) {
-		if(marker.isVisible()) {
+		if(marker.isVisible() && center.isVisible()) {
 			oy = y;
 			double[] transmat = marker.getTransMatrix();
-			double marker_x = transmat[3];
-			double marker_y = transmat[7];
-			double[] centerTransmat = center.getTransMatrix();
-			//transform according to the transformation matrix of the center
-			marker_x = center.transform1DX(marker_x);
-			marker_y = marker_x-center.getX()-halfWidth;//+halfWidth;
-			y = (float)marker_y;
-			//the y coordinate is ignored, as the paddle controls only x
-			//we use the x coordinate, as the whole board is rotated by 90°
+			double[] centerMat = center.getInvTransMat();
+			ARToolkit.arUtilMatMul(centerMat, transmat, coordsInCenterCS);
+			y = (float)coordsInCenterCS[3]-halfWidth;
 			touchDelta = 0;//reset, while it is controlled by the marker			
 		} else {
 			//is there any touchevent?

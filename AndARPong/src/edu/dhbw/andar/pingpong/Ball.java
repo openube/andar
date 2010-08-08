@@ -4,6 +4,7 @@ import java.nio.FloatBuffer;
 import java.util.Random;
 
 import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL11;
 
 
 import android.media.MediaPlayer;
@@ -11,7 +12,6 @@ import android.util.Log;
 
 import edu.dhbw.andar.pingpong.GLUT.SolidSphere;
 import edu.dhbw.andar.util.GraphicsUtil;
-import edu.dhbw.andarpong.R;
 
 public class Ball implements GameObject{
 	private GameCenter center;
@@ -26,7 +26,7 @@ public class Ball implements GameObject{
 	private final double INITIAL_SPEED = 0.2;
 	private double speed = INITIAL_SPEED;
 	
-	private final double acceleration = 0.00000001;
+	private final double acceleration = 0.0000001;
 	/**
 	 * velocity x
 	 */
@@ -73,6 +73,7 @@ public class Ball implements GameObject{
 		if(center.isVisible()) {
 			Log.d("BALL", y+"");
 			
+			GL11 gl11 = (GL11)gl;
 			
 			gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR,mat_flash);
 			gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SHININESS, mat_flash_shiny);	
@@ -80,7 +81,6 @@ public class Ball implements GameObject{
 			gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, mat_ambient);
 			gl.glTranslatef(x, y, z);		
 			
-			//box.draw(gl);
 			SolidSphere.draw(gl, radius, 12, 12);
 		}
 	}
@@ -184,6 +184,11 @@ public class Ball implements GameObject{
 	public void bounceX() {
 		bounceSoundPlayer.start();
 		vx*=-1.0;
+	}
+	
+	public void bounceX(double drift) {
+		bounceX();
+		vy += drift;
 	}
 
 	@Override

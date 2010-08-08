@@ -1,17 +1,9 @@
 package edu.dhbw.andar.pingpong;
 
-import java.nio.FloatBuffer;
-
 import javax.microedition.khronos.opengles.GL10;
-import javax.microedition.khronos.opengles.GL10Ext;
-
-import android.opengl.GLU;
-import android.opengl.GLUtils;
-import android.util.Log;
 
 import edu.dhbw.andar.ARObject;
-import edu.dhbw.andar.AndARRenderer;
-import edu.dhbw.andar.util.GraphicsUtil;
+import edu.dhbw.andar.ARToolkit;
 
 /**
  * An example of an AR object being drawn on a marker.
@@ -20,8 +12,8 @@ import edu.dhbw.andar.util.GraphicsUtil;
  */
 public class GameCenter extends ARObject implements GameObject {
 
-	private double trans0=0;
-	private double trans1=0;
+	private double[] invTrans = new double[12];
+	
 	private float x=0;
 	private float y=0;
 	private float ox=0;
@@ -46,7 +38,6 @@ public class GameCenter extends ARObject implements GameObject {
 	}
 	@Override
 	public void init(GL10 gl) {
-		
 	}
 	
 	public synchronized void transformToCenter(GL10 gl) {
@@ -76,21 +67,23 @@ public class GameCenter extends ARObject implements GameObject {
 	public float getOldY() {
 		return oy;
 	}
-	
-	public double transform1DX(double val) {
-		return trans0*val+trans1*val;
+
+	public double[] getInvTransMat() {
+		return invTrans;
 	}
 	
 	@Override
-	public void update(long time) {
-		double[] transmat = getTransMatrix();
-		trans0 = transmat[0];
-		trans1 = transmat[1];
-		double marker_x = transmat[3];
-		double marker_y = transmat[7];
-		this.ox = x;
-		this.oy = y;
-		this.x = (float)marker_x;
-		this.y = (float)marker_y;
+	public synchronized void update(long time) {
+		if(isVisible()) {
+			double[] transmat = getTransMatrix();
+			ARToolkit.arUtilMatInv(transmat, invTrans);
+			double marker_x = transmat[3];
+			double marker_y = transmat[7];
+			this.ox = x;
+			this.oy = y;
+			this.x = (float)marker_x;
+			this.y = (float)marker_y;
+		}
+		
 	}
 }

@@ -6,6 +6,11 @@ import javax.microedition.khronos.opengles.GL10;
 
 import edu.dhbw.andar.util.GraphicsUtil;
 
+/**
+ * A simple OpenGL Box.
+ * @author Tobi
+ *
+ */
 public class SimpleBox {
 	private FloatBuffer box;
 	private FloatBuffer normals;

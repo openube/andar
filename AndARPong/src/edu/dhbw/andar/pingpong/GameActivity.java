@@ -47,13 +47,15 @@ public class GameActivity extends AndARActivity {
 		super.onCreate(savedInstanceState);
 		try {
 			artoolkit = super.getArtoolkit();
+			//Register the marker objects:
 			PaddleMarker paddleMarker1 = new PaddleMarker
 				("test", "bat.patt", 55.0, new double[]{0,0});//55
 			artoolkit.registerARObject(paddleMarker1);
 			GameCenter gameCenter = new GameCenter
-			("test", "center.patt", 170.0, new double[]{0,0});//170
+			("test", "center.patt", 137.0, new double[]{0,0});//170
 			artoolkit.registerARObject(gameCenter);
 			
+			//create all game objects:
 			GameScore score = new GameScore(this.getResources());
 			Ball ball = new Ball(gameCenter,MediaPlayer.create(this,R.raw.ballbounce_wav));
 			Paddle paddle1 = new PlayerPaddle(0, paddleMarker1, gameCenter);
