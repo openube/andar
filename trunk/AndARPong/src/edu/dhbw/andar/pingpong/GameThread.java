@@ -53,7 +53,7 @@ public class GameThread extends Thread{
 			
 			center.update(td);			
 			
-			//position updaten
+			//update all position
 			paddle1.update(td);
 			paddle2.update(td);
 			ball.update(td);
@@ -66,7 +66,7 @@ public class GameThread extends Thread{
 				if((ball.getOldX()+ball.radius<=GameThread.UPPERLIMITX)&&(ball.getX()+ball.radius>GameThread.UPPERLIMITX)) {
 					//Kollision mit Paddel 1
 					if((ball.getY()+ball.radius> paddle1.getY())&&(ball.getY()-ball.radius< paddle1.getY()+paddle1.getWidth())) {
-						ball.bounceX();
+						ball.bounceX((paddle2.getY()-paddle2.getOldY())/(td/100));
 						ball.setX(GameThread.UPPERLIMITX-ball.radius);
 						collision = true;
 					}
@@ -74,9 +74,9 @@ public class GameThread extends Thread{
 			} else {
 				//Ball heading to paddle2 ... so we don't care about paddle1
 				if((ball.getOldX()-ball.radius>=GameThread.LOWERLIMITX)&&(ball.getX()-ball.radius<GameThread.LOWERLIMITX)) {
-					//Kollision mit Paddel 1
+					//Kollision mit Paddel 2
 					if((ball.getY()+ball.radius> paddle2.getY())&&(ball.getY()-ball.radius< paddle2.getY()+paddle2.getWidth())) {
-						ball.bounceX();
+						ball.bounceX((paddle2.getY()-paddle2.getOldY())/(td/100));
 						ball.setX(GameThread.LOWERLIMITX+ball.radius);
 						collision = true;
 					}
