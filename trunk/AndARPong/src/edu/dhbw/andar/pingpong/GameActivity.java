@@ -78,7 +78,7 @@ public class GameActivity extends AndARActivity {
 			gameThread = new GameThread(ball, paddle1, paddle2, gameCenter, score);
 		} catch (AndARException ex){
 			//handle the exception, that means: show the user what happened
-			System.out.println("");
+			Log.e("AndAR Pong", ex.getMessage());
 		}	
 	}
 
