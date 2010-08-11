@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:background="#000000">
+  
+  
+  <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:src="@drawable/menu_logo" />
+        
+        
+  <ListView android:id="@id/android:list"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:background="#000000"
+         android:drawSelectorOnTop="true"/>
+         <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:src="@drawable/menu_logo" />
+</LinearLayout>-->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"> 
+    
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+         android:orientation="vertical"
+         android:layout_width="fill_parent"
+         android:layout_height="fill_parent"
+         android:paddingLeft="8dp"
+         android:paddingRight="8dp"
+         android:background="#000000">
+         
+         <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="150dip"
+        android:gravity="center_horizontal"
+        android:src="@drawable/menu_logo" 
+        android:background="#000000"/>
+        
+       <include layout="@layout/separator" />
+       <include android:id="@+id/main_menu_startgame" layout="@layout/main_menu_item" />
+	   <include layout="@layout/separator" />
+	   <include android:id="@+id/main_menu_intructions" layout="@layout/main_menu_item" />
+	   <include layout="@layout/separator" />
+	   <include android:id="@+id/main_menu_about" layout="@layout/main_menu_item" />
+	   <include layout="@layout/separator" />
+
+      <ListView android:id="@id/android:list"
+               android:layout_width="fill_parent"
+               android:layout_height="fill_parent"
+               android:background="#000000"
+               android:drawSelectorOnTop="true"/>
+ </LinearLayout>
+ 
+ </ScrollView>
