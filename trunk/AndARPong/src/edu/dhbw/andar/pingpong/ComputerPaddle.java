@@ -4,7 +4,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class ComputerPaddle extends Paddle {
 	
-	private final double speed = 0.00000008;
+	private final double speed = 0.00000006;
 	private final double speed_slow = 0.00000004;
 	private final float epsilon = 0.1f;
 	

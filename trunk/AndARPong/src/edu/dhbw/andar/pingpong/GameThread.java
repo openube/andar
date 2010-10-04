@@ -7,7 +7,7 @@ public class GameThread extends Thread{
 	private Paddle paddle1;
 	private Paddle paddle2;
 	private GameCenter center;
-	private GameScore score;
+	private GameHUD score;
 	private boolean running = true;
 	
 	//time
@@ -26,7 +26,7 @@ public class GameThread extends Thread{
 	 * @param paddle1
 	 * @param paddle2
 	 */	
-	public GameThread(Ball ball, Paddle paddle1, Paddle paddle2, GameCenter center, GameScore score) {
+	public GameThread(Ball ball, Paddle paddle1, Paddle paddle2, GameCenter center, GameHUD score) {
 		setDaemon(true);
 		this.score = score;
 		this.ball = ball; 
@@ -86,10 +86,10 @@ public class GameThread extends Thread{
 			if(!collision) {
 				if(ball.getX()+ball.radius>GameThread.UPPERLIMITX) {
 					//score
-					score.incPlayerScore();
-					ball.reset();
-				} else if (ball.getX()-ball.radius<GameThread.LOWERLIMITX) {
 					score.incComputerScore();
+					ball.reset();
+				} else if (ball.getX()-ball.radius<GameThread.LOWERLIMITX) {					
+					score.incPlayerScore();
 					//score
 					ball.reset();
 				} 

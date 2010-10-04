@@ -56,7 +56,7 @@ public class GameActivity extends AndARActivity {
 			artoolkit.registerARObject(gameCenter);
 			
 			//create all game objects:
-			GameScore score = new GameScore(this.getResources());
+			GameHUD score = new GameHUD(this.getResources());
 			Ball ball = new Ball(gameCenter,MediaPlayer.create(this,R.raw.ballbounce_wav));
 			Paddle paddle1 = new PlayerPaddle(0, paddleMarker1, gameCenter);
 			getSurfaceView().setOnTouchListener((PlayerPaddle)paddle1);
