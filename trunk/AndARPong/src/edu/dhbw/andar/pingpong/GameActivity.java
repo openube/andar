@@ -56,7 +56,10 @@ public class GameActivity extends AndARActivity {
 			artoolkit.registerARObject(gameCenter);
 			
 			//create all game objects:
-			GameHUD score = new GameHUD(this.getResources());
+			GameScore score = new GameScore();
+			GameHUD gameHUD = new GameHUD(this.getResources(),score);
+			score.setGameHUD(gameHUD);
+			
 			Ball ball = new Ball(gameCenter,MediaPlayer.create(this,R.raw.ballbounce_wav));
 			Paddle paddle1 = new PlayerPaddle(0, paddleMarker1, gameCenter);
 			getSurfaceView().setOnTouchListener((PlayerPaddle)paddle1);
@@ -69,7 +72,7 @@ public class GameActivity extends AndARActivity {
 			super.setNonARRenderer(renderer);
 			
 			renderer.addGameObject(ball);
-			renderer.addGameObject(score);
+			renderer.addGameObject(gameHUD);
 			renderer.addGameObject(paddle1);
 			renderer.addGameObject(paddle2);
 			renderer.addGameObject(bounderyUp);
