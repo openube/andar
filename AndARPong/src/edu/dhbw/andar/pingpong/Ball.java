@@ -26,7 +26,7 @@ public class Ball implements GameObject{
 	private final double INITIAL_SPEED = 0.2;
 	private double speed = INITIAL_SPEED;
 	
-	private final double acceleration = 0.0000001;
+	private final double acceleration = 0.00001;
 	/**
 	 * velocity x
 	 */
