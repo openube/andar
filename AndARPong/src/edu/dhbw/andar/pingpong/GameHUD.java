@@ -25,8 +25,8 @@ import android.util.Log;
  */
 public class GameHUD implements GameObject {
 	
-	private int computer = 0;
-	private int player = 0;
+	private GameScore score;
+	
 	private Resources res;
 	int[]  textureIDs = new int[6];
 	private FloatBuffer verticesBufferDigits;
@@ -85,22 +85,6 @@ public class GameHUD implements GameObject {
 			0f,  0.57f, 
 			1f,  0.57f, 
 		};
-	/*{
-		1f, 0f, 
-		0f, 0f, 
-		1f,  1f, 
-		0f, 0f, 
-		0f,  1f, 
-		1f,  1f
-	};*/
-	/*{
-		0f, 0f, 
-		1f, 0f, 
-		0f,  1f, 
-		1f, 0f, 
-		1f,  1f, 
-		0f,  1f
-	};*/
 	
 	private final float normals[] = 
 	{
@@ -120,9 +104,10 @@ public class GameHUD implements GameObject {
 	 */
 	private final float textPadding=20.0f; 
 	
-	public GameHUD(Resources res) {
+	public GameHUD(Resources res, GameScore score) {
 		//initiate all vertex/coordinate buffers
 		this.res = res;
+		this.score = score;
 		digitWidth = (GameThread.UPPERLIMITY - GameThread.LOWERLIMITY)*0.5f*0.5f*0.333f;//width of one digit = half width of the board for all 3 digits
 		digitHeight = digitWidth*2.0f;//predefined ratio
 		verticesDigits = new float[]
@@ -179,11 +164,11 @@ public class GameHUD implements GameObject {
 		gl.glDrawArrays(GL10.GL_TRIANGLES, 0, 6);
 		
 		gl.glTranslatef(-digitWidth*2.0f, 0, 0);		
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[computer]);
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[score.computer]);
 		gl.glDrawArrays(GL10.GL_TRIANGLES, 0, 6);
 		
 		gl.glTranslatef(digitWidth*4.0f, 0, 0);	
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[player]);
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureIDs[score.player]);
 		gl.glDrawArrays(GL10.GL_TRIANGLES, 0, 6);
 		
 		gl.glPopMatrix();//restore the matrix, in order to draw the text.
@@ -303,24 +288,6 @@ public class GameHUD implements GameObject {
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
 		bm.recycle();
-	}
-	
-	public void incComputerScore() {
-		computer++;
-		if(computer>3) {
-			playerLost();
-			computer = 0;
-			player = 0;
-		}
-	}
-	
-	public void incPlayerScore() {
-		player++;
-		if(player>3) {			
-			playerWon();
-			computer = 0;
-			player = 0;
-		}
 	}
 
 	public void playerWon() {

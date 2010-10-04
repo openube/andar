@@ -7,7 +7,7 @@ public class GameThread extends Thread{
 	private Paddle paddle1;
 	private Paddle paddle2;
 	private GameCenter center;
-	private GameHUD score;
+	private GameScore score;
 	private boolean running = true;
 	
 	//time
@@ -20,13 +20,16 @@ public class GameThread extends Thread{
 	public static final float UPPERLIMITY = 150;
 	public static final float LOWERLIMITY = -150;
 	
+	//score
+	
+	
 	/**
 	 * 
 	 * @param ball
 	 * @param paddle1
 	 * @param paddle2
 	 */	
-	public GameThread(Ball ball, Paddle paddle1, Paddle paddle2, GameCenter center, GameHUD score) {
+	public GameThread(Ball ball, Paddle paddle1, Paddle paddle2, GameCenter center, GameScore score) {
 		setDaemon(true);
 		this.score = score;
 		this.ball = ball; 
