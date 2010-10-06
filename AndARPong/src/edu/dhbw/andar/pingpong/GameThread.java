@@ -30,7 +30,6 @@ public class GameThread extends Thread{
 	 * @param paddle2
 	 */	
 	public GameThread(Ball ball, Paddle paddle1, Paddle paddle2, GameCenter center, GameScore score) {
-		setDaemon(true);
 		this.score = score;
 		this.ball = ball; 
 		this.paddle1 = paddle1;

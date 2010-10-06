@@ -23,7 +23,7 @@ public class Ball implements GameObject{
 	private float oy=0;
 	private double accelerationX = 1.0f;
 	private double accelerationY = 1.0f;
-	private final double INITIAL_SPEED = 0.2;
+	private final double INITIAL_SPEED = 0.3;
 	private double speed = INITIAL_SPEED;
 	
 	private final double acceleration = 0.00001;
@@ -45,11 +45,11 @@ public class Ball implements GameObject{
 	private FloatBuffer mat_flash_shiny;
 	private FloatBuffer mat_diffuse;
 	
-	private MediaPlayer bounceSoundPlayer;
+	private SoundEngine soundEngine;
 	
 	private Random random = new Random(System.nanoTime());
 	
-	public Ball(GameCenter center, MediaPlayer player) {
+	public Ball(GameCenter center, SoundEngine soundEngine) {
 		this.center = center;
 		float[] mat_ambientf     = new float[]{0.5f, 0.5f, 0.5f, 1.0f};
 		float[]mat_flashf      = new float[]{0.5f, 0.5f, 0.5f, 1.0f};
@@ -61,7 +61,7 @@ public class Ball implements GameObject{
 		mat_flash_shiny = GraphicsUtil.makeFloatBuffer(mat_flash_shinyf);
 		mat_diffuse = GraphicsUtil.makeFloatBuffer(mat_diffusef);
 		
-		bounceSoundPlayer = player;//TODO auslagern
+		this.soundEngine = soundEngine;
 		
 	}
 	
@@ -177,12 +177,12 @@ public class Ball implements GameObject{
 	}
 	
 	public void bounceY() {
-		bounceSoundPlayer.start();
+		soundEngine.playBallBounceSound();
 		vy*=-1.0;
 	}
 	
 	public void bounceX() {
-		bounceSoundPlayer.start();
+		soundEngine.playBallBounceSound();
 		vx*=-1.0;
 	}
 	

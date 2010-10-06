@@ -59,8 +59,9 @@ public class GameActivity extends AndARActivity {
 			GameScore score = new GameScore();
 			GameHUD gameHUD = new GameHUD(this.getResources(),score);
 			score.setGameHUD(gameHUD);
+			SoundEngine soundEngine = new SoundEngine(this);
 			
-			Ball ball = new Ball(gameCenter,MediaPlayer.create(this,R.raw.ballbounce_wav));
+			Ball ball = new Ball(gameCenter, soundEngine);
 			Paddle paddle1 = new PlayerPaddle(0, paddleMarker1, gameCenter);
 			getSurfaceView().setOnTouchListener((PlayerPaddle)paddle1);
 			//Paddle paddle1 = new ComputerPaddle(0, gameCenter,ball);
@@ -78,7 +79,10 @@ public class GameActivity extends AndARActivity {
 			renderer.addGameObject(bounderyUp);
 			renderer.addGameObject(bounderyLow);
 			
+			
 			gameThread = new GameThread(ball, paddle1, paddle2, gameCenter, score);
+			
+			soundEngine.playBGMusic();
 		} catch (AndARException ex){
 			//handle the exception, that means: show the user what happened
 			Log.e("AndAR Pong", ex.getMessage());
