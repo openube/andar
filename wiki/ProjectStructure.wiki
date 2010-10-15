@@ -17,6 +17,8 @@ The source code repository contains three Eclipse (Galileo) projects. Those are:
    * Makes use of the AndAR project.
    * A sample application that shows how to use AndAR.
    * *Not needed* if you want to develop your very *own application* based on AndAR.
+ * AndAR Pong
+   * An augmented version of Pong.
  * AndOpenGLCam (*deprecated*)
    * My first try to get the ARToolkit working on Android.
    * Should basically work.
