@@ -11,4 +11,4 @@ AndAR Pong ist an augmented version of the classic Pong game.
  * You may control your paddle either using the touchscreen or the marker on the left.
  * *important*: you can only use the touchscreen, if the paddle marker ist not visible.
  * Enjoy!
-<img src="./screenshot2.png" width="300px" />
+<img src="http://andar.googlecode.com/files/AndARPongScreenshot.png" width="300px" />
